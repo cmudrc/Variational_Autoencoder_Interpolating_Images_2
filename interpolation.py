@@ -28,8 +28,8 @@ test_data = testX.astype('float32') / 255
 test_data = np.reshape(test_data, (10000, 28, 28, 1))
 ########################################################################################################################
 # Selecting a particular set of numbers of interpolation
-number_1 = 3
-number_2 = 4
+number_1 = 0
+number_2 = 3
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
 indices_1 = [i for i in range(len(testy)) if testy[i] == number_1]

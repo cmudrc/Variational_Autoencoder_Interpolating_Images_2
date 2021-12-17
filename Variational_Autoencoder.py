@@ -7,7 +7,7 @@ from tensorflow.python.framework.ops import disable_eager_execution
 import random
 warnings.filterwarnings('ignore')
 disable_eager_execution()
-
+#TEST REPO CHANGE
 """
 This code is used to download the MNIST data set, then a few sample values from the set are chosen to test
 """
