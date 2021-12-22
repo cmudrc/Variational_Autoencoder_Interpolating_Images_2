@@ -2,11 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from basic_box import basic_box
-
+from diagonal_box_split import digonal_box_split
 
 image_size = 28  # number of pixels on 2D plane
-maximum_additional_pixels = (n/2)-1  # this will calculate the amount that the box will need to become completely filled
-
+maximum_additional_pixels = int((image_size/2)-1)  # this will calculate the amount that the box will need to become completely filled
+# and 1 adds a pixel on either side of a shape
 step_number = 5
 min_density = 0
 max_density = 1
@@ -19,12 +19,12 @@ for i in range(1, step_number+1):
     print(density)
     for j in range(maximum_additional_pixels):
         number_of_additional_pixels = j
+        A = basic_box(number_of_additional_pixels, density, image_size)
+        print("Figure " + str(density))
+        plt.matshow(A, cmap='gray')
+        plt.title("Basic Box with " + str(number_of_additional_pixels) + " Additonal Pixel(s) and " + str(density) + " Pixel Density")
+        plt.colorbar()
+        plt.show()
 
-# and 1 adds a pixel on either side of a shape
-density = 1
-A = basic_box(maximum_additional_pixels, density, image_size)
-print("Figure" + str(density))
-plt.matshow(A, cmap='gray')
-plt.title("Shape with " + str(number_of_additional_pixels) + " Additonal Pixel(s)")
-plt.colorbar()
-plt.show()
+
+
