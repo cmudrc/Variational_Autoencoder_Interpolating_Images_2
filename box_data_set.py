@@ -20,11 +20,11 @@ for i in range(1, step_number+1):
     for j in range(maximum_additional_pixels):
         number_of_additional_pixels = j
         A = basic_box(number_of_additional_pixels, density, image_size)
-        print("Figure " + str(density))
-        plt.matshow(A, cmap='gray')
-        plt.title("Basic Box with " + str(number_of_additional_pixels) + " Additonal Pixel(s) and " + str(density) + " Pixel Density")
-        plt.colorbar()
-        plt.show()
+        print("Basic Box with " + str(number_of_additional_pixels) + " Additonal Pixel(s) and " + str(density) + " Pixel Density")
+        # plt.matshow(A, cmap='gray')
+        # plt.title("Basic Box with " + str(number_of_additional_pixels) + " Additonal Pixel(s) and " + str(density) + " Pixel Density")
+        # plt.colorbar()
+        # plt.show()
 
 
 

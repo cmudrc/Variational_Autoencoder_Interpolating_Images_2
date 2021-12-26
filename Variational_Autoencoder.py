@@ -16,6 +16,8 @@ This code is used to download the MNIST data set, then a few sample values from 
 print('Training data shapes: X=%s, y=%s' % (trainX.shape, trainy.shape))
 print('Testing data shapes: X=%s, y=%s' % (testX.shape, testy.shape))
 print('Training data type:' + str(type(trainy)))
+print(testy)
+print(testX)
 
 for j in range(5):  # shows  5 random images to the users to view samples of the dataset
     i = np.random.randint(0, 10000)
