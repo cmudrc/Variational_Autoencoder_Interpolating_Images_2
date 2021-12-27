@@ -1,6 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import math
+
 
 def basic_box(additional_pixels, density, n):
     A = np.zeros((int(n), int(n)))  # Initializes A matrix with 0 values
@@ -23,15 +22,14 @@ def basic_box(additional_pixels, density, n):
                     A[i][j] = 1  # Replace the A with the new updated A terms, and then perform the density increase again
     return A*density
 
-# n = 32
+
+# n = 32  # The desired total shape size
 # desired_number_of_additional_pixels = 14 # Insert the desired number of additional pixels here, where 0 corresponds to shape thickness of 1
 # # and 1 adds a pixel on either side of a shape
 # desired_density = 1 # Will be used to create matrices with various densities, ranges from 0 to 100, representing null space and fully solid space respectively
 # B = basic_box(desired_number_of_additional_pixels, desired_density, n)
-# print("Figure 2")
+# print("Figure")
 # plt.matshow(B, cmap='gray')
 # plt.title("Shape with " + str(desired_number_of_additional_pixels) + " Additonal Pixel(s)")
 # plt.colorbar()
 # plt.show()
-
-
