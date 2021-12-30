@@ -1,3 +1,4 @@
+import numpy as np
 from basic_box import basic_box
 from diagonal_box_split import diagonal_box_split
 from horizontal_vertical_box_split import horizontal_vertical_box_split
@@ -14,21 +15,37 @@ max_density = 1
 density_increment = (max_density-min_density)/step_number  # amount that the density will increase between two points
 
 # Basic Box data generator
-for i in range(1, step_number+1):
+
+def make_basic_boxes(i, j):
     density = i*density_increment  # causing some sort of decimal float issue
     # Will be used to create matrices with various densities, ranges from greater than 0 and equal to 1,
     # representing null space and fully solid space respectively
-    print("\nDENSITY: " + str(round(density, 5)))
-    for j in range(maximum_additional_pixels_basic):
-        number_of_additional_pixels = j
-        A = basic_box(number_of_additional_pixels, density, image_size)
-        print("Basic Box: " + str(number_of_additional_pixels) + " Additonal Pixel(s) and " + str(round(density, 5)) + " Pixel Density")
-        # Use to verify various box shapes and densities
-        # plt.matshow(A, cmap='gray')
-        # plt.title("Basic Box with " + str(number_of_additional_pixels) + " Additonal Pixel(s) and " + str(density) + " Pixel Density")
-        # plt.colorbar()
-        # plt.show()
+    number_of_additional_pixels = j
+    A = basic_box(number_of_additional_pixels, density, image_size)
+    print("Basic Box: " + str(number_of_additional_pixels) + " Additonal Pixel(s) and " + str(round(density, 5)) + " Pixel Density")
+    # Use to verify various box shapes and densities
+    # plt.matshow(A, cmap='gray')
+    # plt.title("Basic Box with " + str(number_of_additional_pixels) + " Additonal Pixel(s) and " + str(density) + " Pixel Density")
+    # plt.colorbar()
+    # plt.show()
+    return A
 
+
+print(maximum_additional_pixels_basic)
+
+matrix = []
+for i in range(1, step_number+1):
+    for j in range(maximum_additional_pixels_basic):
+        matrix.append(make_basic_boxes(i, j))
+
+
+plt.matshow(matrix[0], cmap='gray')
+plt.title("Basic Boxes")
+plt.colorbar()
+plt.show()
+print(matrix[0])
+print(np.shape(matrix))
+'''
 # Diagonal Split Box data generator
 for i in range(1, step_number+1):
     density = i*density_increment  # causing some sort of decimal float issue
@@ -60,3 +77,8 @@ for i in range(1, step_number+1):
         # plt.title("Diagonal Split Box with " + str(number_of_additional_pixels) + " Additonal Pixel(s) and " + str(density) + " Pixel Density")
         # plt.colorbar()
         # plt.show()
+
+
+
+# want to save so it would be referenced as: (box_test, box_density, additional_pixels, box_shape) = data.load()
+'''
