@@ -28,22 +28,24 @@ def make_basic_boxes(i, j):
     # plt.title("Basic Box with " + str(number_of_additional_pixels) + " Additonal Pixel(s) and " + str(density) + " Pixel Density")
     # plt.colorbar()
     # plt.show()
-    return A
+    new = tuple((A, density, number_of_additional_pixels, "Basic_Box"))
+    return new
 
 
 print(maximum_additional_pixels_basic)
 
-matrix = []
+matrix = np.dtype([])
+print(matrix)
 for i in range(1, step_number+1):
     for j in range(maximum_additional_pixels_basic):
-        matrix.append(make_basic_boxes(i, j))
+        matrix = np.append(matrix, [make_basic_boxes(i, j)])
 
 
-plt.matshow(matrix[0], cmap='gray')
-plt.title("Basic Boxes")
-plt.colorbar()
-plt.show()
-print(matrix[0])
+# plt.matshow(matrix[0][0], cmap='gray')
+# plt.title("Basic Boxes")
+# plt.colorbar()
+# plt.show()
+print(matrix[1])
 print(np.shape(matrix))
 '''
 # Diagonal Split Box data generator
