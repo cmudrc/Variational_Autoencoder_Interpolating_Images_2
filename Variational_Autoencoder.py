@@ -7,7 +7,7 @@ from tensorflow.python.framework.ops import disable_eager_execution
 import random
 warnings.filterwarnings('ignore')
 disable_eager_execution()
-
+latent_dimensionality = 2
 """
 This code is used to download the MNIST data set, then a few sample values from the set are chosen to test
 """
@@ -62,8 +62,8 @@ def sample_latent_features(distribution):
     return distribution_mean + tensorflow.exp(0.5 * distribution_variance) * random
 
 
-distribution_mean = tensorflow.keras.layers.Dense(2, name='mean')(encoder)
-distribution_variance = tensorflow.keras.layers.Dense(2, name='log_variance')(encoder)
+distribution_mean = tensorflow.keras.layers.Dense(latent_dimensionality, name='mean')(encoder)
+distribution_variance = tensorflow.keras.layers.Dense(latent_dimensionality, name='log_variance')(encoder)
 latent_encoding = tensorflow.keras.layers.Lambda(sample_latent_features)([distribution_mean, distribution_variance])
 
 print("Latent Encoding" + str(latent_encoding.shape))
