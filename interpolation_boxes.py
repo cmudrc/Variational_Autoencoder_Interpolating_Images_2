@@ -3,13 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow
 import warnings
-from tensorflow.keras.datasets import mnist
+from box_data_set import make_boxes
 from tensorflow.python.framework.ops import disable_eager_execution
+from sklearn.model_selection import train_test_split
 warnings.filterwarnings('ignore')
 disable_eager_execution()
 
 # import the decoder model
-decoder_model = tensorflow.keras.models.load_model('decoder_model')
+decoder_model = tensorflow.keras.models.load_model('decoder_model_boxes')
 
 # import the encoder model architecture
 json_file_loaded = open('model.json', 'r')
@@ -23,26 +24,37 @@ encoder_model = tensorflow.keras.models.model_from_json(loaded_model_json)
 encoder_model.load_weights('model_tf')
 ########################################################################################################################
 # Import the Test Data
-(trainX, trainy), (testX, testy) = mnist.load_data()
-test_data = testX.astype('float32') / 255
-test_data = np.reshape(test_data, (10000, 28, 28, 1))
+image_size = 28
+box_data = make_boxes(image_size)
+box_data_train, box_data_test = train_test_split(box_data, test_size=0.15)  # Uses a similar percentage as MNIST Data
+
+box_matrix_train, box_density_train, additional_pixels_train, box_shape_train = list(zip(*box_data_train))[0], list(zip(*box_data_train))[1], list(zip(*box_data_train))[2], list(zip(*box_data_train))[3]
+box_matrix_test, box_density_test, additional_pixels_test, box_shape_test = list(zip(*box_data_test))[0], list(zip(*box_data_test))[1], list(zip(*box_data_test))[2], list(zip(*box_data_test))[3]
+testX = box_matrix_test
+test_data = np.reshape(testX, (len(testX), image_size, image_size, 1))
 ########################################################################################################################
-# Selecting a particular set of numbers of interpolation
-number_1 = 0
-number_2 = 3
+# Selecting a particular set of boxes for interpolation
+box_density_1 = 0.2
+box_density_2 = 1
+
+additional_pixels_1 = 1
+additional_pixels_2 = 0
+
+box_shape_1 = "Basic_Box"  # Select from "Basic_Box", "Diagonal_Box_Split", and "Horizontal_Box_Split"
+box_shape_2 = "Basic_Box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
-indices_1 = [i for i in range(len(testy)) if testy[i] == number_1]
-indices_2 = [i for i in range(len(testy)) if testy[i] == number_2]
+number_1 = [i for i in range(len(testX)) if box_density_test[i] == box_density_1 and additional_pixels_test[i] == additional_pixels_1 and box_shape_test[i] == box_shape_1]
+number_2 = [i for i in range(len(testX)) if box_density_test[i] == box_density_2 and additional_pixels_test[i] == additional_pixels_2 and box_shape_test[i] == box_shape_2]
 
 # choose a random index
-number_1 = random.choice(indices_1)
-number_2 = random.choice(indices_2)
+# number_1 = random.choice(indices_1)
+# number_2 = random.choice(indices_2)
 
 # resize the array to match the prediction size requirement
 number_1 = np.expand_dims(number_1, axis=0)
 number_2 = np.expand_dims(number_2, axis=0)
-
+print(number_1)
 # Determine the latent point that will represent our desired number
 xy1 = encoder_model.predict(test_data[number_1])
 xy2 = encoder_model.predict(test_data[number_2])
