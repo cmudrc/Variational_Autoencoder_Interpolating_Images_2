@@ -4,6 +4,8 @@ import tensorflow
 import warnings
 from tensorflow.keras.datasets import mnist
 from tensorflow.python.framework.ops import disable_eager_execution
+import pandas as pd
+import seaborn as sns
 import random
 warnings.filterwarnings('ignore')
 disable_eager_execution()
@@ -144,6 +146,26 @@ encoder_model.save_weights('model_tf', save_format='tf')  # tf format
 #encoder_model.save('encoder_model')
 decoder_model.save('decoder_model')
 ########################################################################################################################
+# Latent Feature Cluster
+x = []
+y = []
+z = []
+for i in range(len(testy)):
+    z.append(testy[i])
+    op = encoder_model.predict(np.array([test_data[i]]))
+    x.append(op[0][0])
+    y.append(op[0][1])
+
+df = pd.DataFrame()
+df['x'] = x
+df['y'] = y
+df['z'] = ["digit-" + str(k) for k in z]
+
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x='x', y='y', hue='z', data=df)
+plt.show()
+
+
 '''
 # Used to print out an interpolation between two values
 # Establish the Framework of the Interpolation
