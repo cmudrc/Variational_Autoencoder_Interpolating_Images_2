@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow
 import warnings
+import random
 from tensorflow.keras.datasets import mnist
 from tensorflow.python.framework.ops import disable_eager_execution
 from box_data_set import make_boxes
@@ -20,7 +21,10 @@ print(testy)
 print(testX)
 """
 image_size = 28
-box_data = make_boxes(image_size)
+number_of_densities = 5
+min_density = 0
+max_density = 1
+box_data = make_boxes(image_size, number_of_densities, min_density, max_density)
 box_data_train, box_data_test = train_test_split(box_data, test_size=0.15)  # Uses a similar percentage as MNIST Data
 
 box_matrix_train, box_density_train, additional_pixels_train, box_shape_train = list(zip(*box_data_train))[0], list(zip(*box_data_train))[1], list(zip(*box_data_train))[2], list(zip(*box_data_train))[3]
@@ -79,8 +83,8 @@ latent_encoding = tensorflow.keras.layers.Lambda(sample_latent_features)([distri
 
 print("Latent Encoding" + str(latent_encoding.shape))
 print("Encoder Input Data" + str(input_data.shape))
-encoder_model = tensorflow.keras.Model(input_data, latent_encoding)
-encoder_model.summary()
+encoder_model_boxes = tensorflow.keras.Model(input_data, latent_encoding)
+encoder_model_boxes.summary()
 
 
 ########################################################################################################################
@@ -104,7 +108,7 @@ decoder_model = tensorflow.keras.Model(decoder_input, decoder_output)
 decoder_model.summary()
 ########################################################################################################################
 # The framework for the autoencoder is established
-encoded = encoder_model(input_data)
+encoded = encoder_model_boxes(input_data)
 decoded = decoder_model(encoded)
 autoencoder = tensorflow.keras.models.Model(input_data, decoded)
 autoencoder.summary()
@@ -139,14 +143,14 @@ autoencoder.fit(train_data, train_data, epochs=1, batch_size=64, validation_data
 ########################################################################################################################
 # Saving the Encoder Model
 # Saving model architecture to JSON file and Weights Separately
-model_json = encoder_model.to_json()
+model_json = encoder_model_boxes.to_json()
 
 # Saving to local directory
 with open('model.json', 'w') as json_file:
     json_file.write(model_json)
 
 # Saving weights of model
-encoder_model.save_weights('model_tf', save_format='tf')  # tf format
+encoder_model_boxes.save_weights('model_tf', save_format='tf')  # tf format
 
 ########################################################################################################################
 # Model to Generate New Images
@@ -154,6 +158,7 @@ decoder_model.save('decoder_model_boxes')
 ########################################################################################################################
 # Used to print out an interpolation between two values
 test_data = np.reshape(testX, (len(testX), image_size, image_size, 1))
+'''  # USE WHEN TEST DATA SET IS LARGER!!!!!!!!!!!!!!!
 
 # Selecting a particular set of boxes for interpolation
 box_density_1 = 0.2
@@ -166,20 +171,30 @@ box_shape_1 = "Basic_Box"  # Select from "Basic_Box", "Diagonal_Box_Split", and 
 box_shape_2 = "Basic_Box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
-number_1 = [i for i in range(len(testX)) if box_density_test[i] == box_density_1 and additional_pixels_test[i] == additional_pixels_1 and box_shape_test[i] == box_shape_1]
-number_2 = [i for i in range(len(testX)) if box_density_test[i] == box_density_2 and additional_pixels_test[i] == additional_pixels_2 and box_shape_test[i] == box_shape_2]
+# number_1 = [i for i in range(len(testX)) if (box_density_test[i] == box_density_1 and additional_pixels_test[i] == additional_pixels_1 and box_shape_test[i] == box_shape_1)]
+#for i in range(len(testX)):
+ #   if box_density_test[i] == box_density_1 and additional_pixels_test[i] == additional_pixels_1 and box_shape_test[i] == box_shape_1:
+      #  number_1 = i
+'''
+# Randomly selects two points for interpolation
+number_1 = [i for i in range(len(testX))]
+number_1 = random.choice(number_1)  # choose a random index
 
-# choose a random index
-# number_1 = random.choice(indices_1)
-# number_2 = random.choice(indices_2)
+number_2 = [i for i in range(len(testX)) if i != number_1]
+number_2 = random.choice(number_2)
+
+print("First Interpolation Point:\n" + str(box_shape_test[number_1]) + "\nPixel Density: " + str(
+            box_density_test[number_1]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_1]))
+print("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nPixel Density: " + str(
+            box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]))
 
 # resize the array to match the prediction size requirement
 number_1 = np.expand_dims(number_1, axis=0)
 number_2 = np.expand_dims(number_2, axis=0)
-print(number_1)
+
 # Determine the latent point that will represent our desired number
-xy1 = encoder_model.predict(test_data[number_1])
-xy2 = encoder_model.predict(test_data[number_2])
+xy1 = encoder_model_boxes.predict(test_data[number_1])
+xy2 = encoder_model_boxes.predict(test_data[number_2])
 
 xy1 = xy1[0]
 xy2 = xy2[0]
@@ -216,8 +231,8 @@ for iy, y in enumerate(y_values):  # enumerate creates a list of tuples [(0,-3),
 plt.figure()
 plt.imshow(figure,cmap='gray')
 plt.show()
-'''
-# Establish the Framework of the Interpolation
+''' # USE AS LAST RESORT INTERPOLATION
+# Establish the Framework of the Interpolation between two random latent points
 number_internal = 13  # the number of interpolations that the model will find between two points
 num_interp = number_internal + 2  # the number of images to be pictured
 figure = np.zeros((28, 28 * num_interp))  # The matrix that will hold the pixel values of the images
