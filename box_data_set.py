@@ -59,14 +59,15 @@ def make_horizontal_vertical_split_boxes(i: int, j: int, density_increment, imag
 
 ########################################################################################################################
 # Make the data using all the box code
-def make_boxes(image_size):
+def make_boxes(image_size, number_of_densities, min_density, max_density):
     maximum_additional_pixels_basic = int((image_size / 2) - 1)  # this will calculate the amount of additional pixels
     # needed to completely fill the box, if pixels are added symmetrically. This equation is only valid for the basic box shape
     maximum_additional_pixels_split = int((image_size / 4) - 1)  # this equation is only valid for boxes split into 4 sections
 
-    number_of_densities = 5  # The amount of densities that will be tested
-    min_density = 0  # The minimum density IS NOT included in the data created, it only serves as a placeholder
-    max_density = 1  # The maximum density IS included in the data created
+     # Number of Densities # The amount of densities that will be tested
+     # The minimum density IS NOT included in the data created, it only serves as a placeholder (Recommend: 0)
+     # The maximum density IS included in the data created (Recommend: 1)
+     # Choosing different mins and maxes will require the data to be normalized
     density_increment = (max_density - min_density) / number_of_densities  # amount that the density will increase between two points
 
     matrix = []
@@ -92,7 +93,7 @@ def make_boxes(image_size):
 ########################################################################################################################
 # Test the boxes!
 '''
-box_data = make_boxes(28)
+box_data = make_boxes(28, 5, 0, 1)
 desired_density = 0.2
 desired_additional_pixels = 0
 box_type = "Basic_Box"
