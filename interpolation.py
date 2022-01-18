@@ -40,12 +40,12 @@ number_1 = random.choice(indices_1)
 number_2 = random.choice(indices_2)
 
 # resize the array to match the prediction size requirement
-number_1 = np.expand_dims(number_1, axis=0)
-number_2 = np.expand_dims(number_2, axis=0)
+number_1_expand = np.expand_dims(number_1, axis=0)
+number_2_expand = np.expand_dims(number_2, axis=0)
 
 # Determine the latent point that will represent our desired number
-xy1 = encoder_model.predict(test_data[number_1])
-xy2 = encoder_model.predict(test_data[number_2])
+xy1 = encoder_model.predict(test_data[number_1_expand])
+xy2 = encoder_model.predict(test_data[number_2_expand])
 
 xy1 = xy1[0]
 xy2 = xy2[0]
@@ -66,7 +66,7 @@ print("Linspace X")
 y_values = np.linspace(xy1[1], xy2[1], num_interp) # Interpolates the values of y between the two latent points
 print("Linspace Y")
 #print(y_values)
-
+#Add z values
 ########################################################################################################################
 # Interpolate the Images and Print out to User
 print('Latent Points')
@@ -79,6 +79,16 @@ for iy, y in enumerate(y_values):  # enumerate creates a list of tuples [(0,-3),
     generated_image = decoder_model.predict(latent_point)[0]  # generates an interpolated image based on the latent point
     figure[0: 28,  iy * 28:(iy + 1) * 28, ] = generated_image[:, :, -1]  # Inserts the Pixel Value for Each Image
 
-plt.figure()
-plt.imshow(figure,cmap='gray')
+plot_rows = 1
+plot_columns = 3
+plot_height = 1
+plot_width = plot_height*num_interp
+plt.figure(figsize=(plot_width, plot_height))
+plt.subplot(plot_rows, plot_columns, 1), plt.imshow(testX[number_1], cmap='gray')
+plt.title("Number: " + str(testy[number_1]))
+plt.subplot(plot_rows, plot_columns, 2), plt.imshow(figure, cmap='gray')
+plt.title("Interpolation from " + str(testy[number_1]) + " to " + str(testy[number_2]))
+plt.subplot(plot_rows, plot_columns, 3), plt.imshow(testX[number_2], cmap='gray')
+plt.title("Number: " + str(testy[number_2]))
+
 plt.show()
