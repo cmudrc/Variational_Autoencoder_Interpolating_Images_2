@@ -3,10 +3,13 @@ import matplotlib.pyplot as plt
 import tensorflow
 import warnings
 import random
+import pandas as pd
+import seaborn as sns
 from tensorflow.keras.datasets import mnist
 from tensorflow.python.framework.ops import disable_eager_execution
 from box_data_set import make_boxes
 from sklearn.model_selection import train_test_split
+from tempfile import TemporaryFile
 warnings.filterwarnings('ignore')
 disable_eager_execution()
 latent_dimensionality = 2
@@ -29,6 +32,13 @@ box_data_train, box_data_test = train_test_split(box_data, test_size=0.15)  # Us
 
 box_matrix_train, box_density_train, additional_pixels_train, box_shape_train = list(zip(*box_data_train))[0], list(zip(*box_data_train))[1], list(zip(*box_data_train))[2], list(zip(*box_data_train))[3]
 box_matrix_test, box_density_test, additional_pixels_test, box_shape_test = list(zip(*box_data_test))[0], list(zip(*box_data_test))[1], list(zip(*box_data_test))[2], list(zip(*box_data_test))[3]
+
+# train_test_split_data = TemporaryFile()
+np.savez_compressed('train_test_split_data', box_matrix_train=box_matrix_train, box_density_train=box_density_train,
+                    additional_pixels_train=additional_pixels_train, box_shape_train=box_shape_train,
+                    box_matrix_test=box_matrix_test, box_density_test=box_density_test,
+                    additional_pixels_test=additional_pixels_test, box_shape_test=box_shape_test)
+
 trainX = box_matrix_train
 testX = box_matrix_test
 for j in range(5):  # shows  5 random images to the users to view samples of the dataset
@@ -137,7 +147,7 @@ def get_loss(distribution_mean, distribution_variance):
 
 
 autoencoder.compile(loss=get_loss(distribution_mean, distribution_variance), optimizer='adam')
-autoencoder.fit(train_data, train_data, epochs=1, batch_size=64, validation_data=(test_data, test_data))
+autoencoder.fit(train_data, train_data, epochs=200, batch_size=32, validation_data=(test_data, test_data))
 
 
 ########################################################################################################################
@@ -158,6 +168,8 @@ decoder_model.save('decoder_model_boxes')
 ########################################################################################################################
 # Used to print out an interpolation between two values
 test_data = np.reshape(testX, (len(testX), image_size, image_size, 1))
+
+
 '''  # USE WHEN TEST DATA SET IS LARGER!!!!!!!!!!!!!!!
 
 # Selecting a particular set of boxes for interpolation
@@ -183,18 +195,14 @@ number_1 = random.choice(number_1)  # choose a random index
 number_2 = [i for i in range(len(testX)) if i != number_1]
 number_2 = random.choice(number_2)
 
-print("First Interpolation Point:\n" + str(box_shape_test[number_1]) + "\nPixel Density: " + str(
-            box_density_test[number_1]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_1]))
-print("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nPixel Density: " + str(
-            box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]))
 
 # resize the array to match the prediction size requirement
-number_1 = np.expand_dims(number_1, axis=0)
-number_2 = np.expand_dims(number_2, axis=0)
+number_1_expand = np.expand_dims(number_1, axis=0)
+number_2_expand = np.expand_dims(number_2, axis=0)
 
 # Determine the latent point that will represent our desired number
-xy1 = encoder_model_boxes.predict(test_data[number_1])
-xy2 = encoder_model_boxes.predict(test_data[number_2])
+xy1 = encoder_model_boxes.predict(test_data[number_1_expand])
+xy2 = encoder_model_boxes.predict(test_data[number_2_expand])
 
 xy1 = xy1[0]
 xy2 = xy2[0]
@@ -228,9 +236,27 @@ for iy, y in enumerate(y_values):  # enumerate creates a list of tuples [(0,-3),
     generated_image = decoder_model.predict(latent_point)[0]  # generates an interpolated image based on the latent point
     figure[0: 28,  iy * 28:(iy + 1) * 28, ] = generated_image[:, :, -1]  # Inserts the Pixel Value for Each Image
 
-plt.figure()
-plt.imshow(figure,cmap='gray')
-plt.show()
+print("First Interpolation Point:\n" + str(box_shape_test[number_1]) + "\nPixel Density: " + str(
+            box_density_test[number_1]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_1]))
+print("Box Matrix")
+print(box_matrix_test[number_1])
+print("Additional Pixels Test")
+print(additional_pixels_test)
+plt.imshow(testX[number_1], cmap='gray')
+
+plot_rows = 1
+plot_columns = 3
+plot_height = 1
+plot_width = plot_height*num_interp
+plt.figure(figsize=(plot_width, plot_height))
+plt.subplot(plot_rows, plot_columns, 1), plt.imshow(testX[number_1], cmap='gray')
+plt.title("First Interpolation Point:\n" + str(box_shape_test[number_1]) + "\nPixel Density: " + str(
+            box_density_test[number_1]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_1]))
+plt.subplot(plot_rows, plot_columns, 2), plt.imshow(figure, cmap='gray')
+plt.title("Interpolation from First to Second Interpolation Point")
+plt.subplot(plot_rows, plot_columns, 3), plt.imshow(testX[number_2], cmap='gray')
+plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nPixel Density: " + str(
+            box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]))
 ''' # USE AS LAST RESORT INTERPOLATION
 # Establish the Framework of the Interpolation between two random latent points
 number_internal = 13  # the number of interpolations that the model will find between two points
@@ -262,3 +288,42 @@ plt.figure()
 plt.imshow(figure,cmap='gray')
 plt.show()
 '''
+
+########################################################################################################################
+# Latent Feature Cluster for Test Data
+x = []
+y = []
+z = []
+for i in range(len(box_shape_test)):
+    z.append(box_shape_test[i])
+    op = encoder_model_boxes.predict(np.array([test_data[i]]))
+    x.append(op[0][0])
+    y.append(op[0][1])
+
+df = pd.DataFrame()
+df['x'] = x
+df['y'] = y
+df['z'] = ["digit-" + str(k) for k in z]
+
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x='x', y='y', hue='z', data=df)
+plt.show()
+########################################################################################################################
+# Latent Feature Cluster for Training Data
+x = []
+y = []
+z = []
+for i in range(len(box_shape_train)):
+    z.append(box_shape_train[i])
+    op = encoder_model_boxes.predict(np.array([train_data[i]]))
+    x.append(op[0][0])
+    y.append(op[0][1])
+
+df = pd.DataFrame()
+df['x'] = x
+df['y'] = y
+df['z'] = ["Shape:" + str(k) for k in z]
+
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x='x', y='y', hue='z', data=df)
+plt.show()
