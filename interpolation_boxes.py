@@ -99,7 +99,7 @@ plt.figure()
 plt.imshow(figure,cmap='gray')
 plt.show()
 """
-
+#def interpolation_random(testX):
 # Randomly selects two points for interpolation
 number_1 = [i for i in range(len(testX))]
 number_1 = random.choice(number_1)  # choose a random index
@@ -113,29 +113,32 @@ number_1_expand = np.expand_dims(number_1, axis=0)
 number_2_expand = np.expand_dims(number_2, axis=0)
 
 # Determine the latent point that will represent our desired number
-xy1 = encoder_model_boxes.predict(test_data[number_1_expand])
-xy2 = encoder_model_boxes.predict(test_data[number_2_expand])
+latent_point_1 = encoder_model_boxes.predict(test_data[number_1_expand])
+latent_point_2 = encoder_model_boxes.predict(test_data[number_2_expand])
 
-xy1 = xy1[0]
-xy2 = xy2[0]
-latent_dimensionality = len(xy1)
-print(xy1)
-print(xy2)
+latent_point_1 = latent_point_1[0]
+latent_point_2 = latent_point_2[0]
+latent_dimensionality = len(latent_point_1)
 ########################################################################################################################
 # Establish the Framework of the Interpolation
 number_internal = 13  # the number of interpolations that the model will find between two points
 num_interp = number_internal + 2  # the number of images to be pictured
-figure = np.zeros((28, 28 * num_interp))  # The matrix that will hold the pixel values of the images
-#xy1 = [0, -3]  # Latent Point 1
-#xy2 = [0, 3]  # Latent Point 2
-x_values = np.linspace(xy1[0], xy2[0], num_interp)  # Interpolates the values of x between the two latent points
+figure = np.zeros((image_size, image_size * num_interp))  # The matrix that will hold the pixel values of the images
+
+
+x_values = np.linspace(latent_point_1[0], latent_point_2[0], num_interp)  # Interpolates the values of x between the two latent points
 
 print("Linspace X")
 #print(x_values)
-y_values = np.linspace(xy1[1], xy2[1], num_interp) # Interpolates the values of y between the two latent points
+y_values = np.linspace(latent_point_1[1], latent_point_2[1], num_interp) # Interpolates the values of y between the two latent points
 print("Linspace Y")
 #print(y_values)
 
+matrix = []
+for column in range(latent_dimensionality):
+    new_column = np.linspace(latent_point_1[column], latent_point_2[column], num_interp)
+    matrix.append(new_column)
+matrix = np.array(matrix).T  # Transposes the matrix so that each row can be easily indexed
 ########################################################################################################################
 # Interpolate the Images and Print out to User
 print('Latent Points')
@@ -148,21 +151,6 @@ for iy, y in enumerate(y_values):  # enumerate creates a list of tuples [(0,-3),
     generated_image = decoder_model.predict(latent_point)[0]  # generates an interpolated image based on the latent point
     figure[0: 28,  iy * 28:(iy + 1) * 28, ] = generated_image[:, :, -1]  # Inserts the Pixel Value for Each Image
 
-print("First Interpolation Point:\n" + str(box_shape_test[number_1]) + "\nPixel Density: " + str(
-            box_density_test[number_1]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_1]))
-print("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nPixel Density: " + str(
-            box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]))
-'''
-print("Box Matrix")
-print(box_matrix_test[number_1])
-print("Additional Pixels Test")
-print(additional_pixels_test[number_1])
-# plt.imshow(testX[number_1], cmap='gray')
-'''
-plt.figure()
-plt.imshow(figure, cmap='gray')
-plt.show()
-'''
 plot_rows = 1
 plot_columns = 3
 plot_height = 1
@@ -176,4 +164,4 @@ plt.title("Interpolation from First to Second Interpolation Point")
 plt.subplot(plot_rows, plot_columns, 3), plt.imshow(testX[number_2], cmap='gray')
 plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nPixel Density: " + str(
             box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]))
-'''
+plt.show()
