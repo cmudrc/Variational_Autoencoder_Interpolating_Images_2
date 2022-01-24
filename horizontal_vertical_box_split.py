@@ -14,9 +14,9 @@ def horizontal_vertical_box_split(additional_pixels, density, image_size):
     # Places pixels across the horizontal and vertical axes to split the box
     for i in range(image_size):
         for j in range(image_size):
-            if i == math.floor((image_size-1)/2) or i == math.ceil((n-1)/2):
+            if i == math.floor((image_size-1)/2) or i == math.ceil((image_size-1)/2):
                 A[i][j] = 1
-            if j == math.floor((image_size-1)/2) or j == math.ceil((n-1)/2):
+            if j == math.floor((image_size-1)/2) or j == math.ceil((image_size-1)/2):
                 A[i][j] = 1
     # Adds pixels to the thickness of each component of the box
     for dens in range(additional_pixels):
