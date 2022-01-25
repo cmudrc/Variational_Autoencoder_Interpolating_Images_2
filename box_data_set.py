@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt  # Use to verify various box shapes and densitie
 
 box_functions = [basic_box, diagonal_box_split, horizontal_vertical_box_split, back_slash_box, forward_slash_box,
                  back_slash_plus_box, forward_slash_plus_box, hot_dog_box, hamburger_box, x_hamburger_box,
-                 x_hot_dog_box, x_plus_box, center_box]
+                 x_hot_dog_box, x_plus_box]  # center_box was removed for the purpose of our use case
 
 # box_functions = [basic_box, diagonal_box_split, horizontal_vertical_box_split]
 
