@@ -91,10 +91,10 @@ plot_width = plot_height*num_interp
 plt.figure(figsize=(plot_width, plot_height))
 plt.subplot(plot_rows, plot_columns, 1), plt.imshow(testX[number_1], cmap='gray')
 plt.title("First Interpolation Point:\n" + str(box_shape_test[number_1]) + "\nPixel Density: " + str(
-            box_density_test[number_1]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_1]))
+            box_density_test[number_1]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_1]) + "\nPredicted Latent Point 1: " + str(latent_point_1))
 plt.subplot(plot_rows, plot_columns, 2), plt.imshow(figure, cmap='gray')
 plt.title("Interpolation from First to Second Interpolation Point")
 plt.subplot(plot_rows, plot_columns, 3), plt.imshow(testX[number_2], cmap='gray')
 plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nPixel Density: " + str(
-            box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]))
+            box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]) + "\nPredicted Latent Point 2: " + str(latent_point_2))
 plt.show()
