@@ -45,6 +45,7 @@ def make_boxes(image_size, number_of_densities, min_density, max_density):
 
 
 ########################################################################################################################
+'''
 # Test the boxes!
 box_data = make_boxes(28, 5, 0, 1)
 desired_density = 1
@@ -61,43 +62,50 @@ for j in range(len(box_data)):
         plt.colorbar()
         plt.show()
 
-
-'''
 # The Plot of each of the boxes
 image_size = 28  # The desired total shape size
 desired_additional_pixels = 0 # Will add pixels next to each square in the box
 desired_density = 1  # Determines the grayscale value
 
-plot_rows = 2
+plot_rows = 3
 plot_columns = 5
-plt.subplot(plot_rows, plot_columns, 1), plt.imshow(back_slash_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.subplot(plot_rows, plot_columns, 1), plt.imshow(basic_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("basic_box")
+
+plt.subplot(plot_rows, plot_columns, 2), plt.imshow(diagonal_box_split(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("diagonal_box_split")
+
+plt.subplot(plot_rows, plot_columns, 3), plt.imshow(horizontal_vertical_box_split(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title(" horizontal_vertical_box_split")
+
+plt.subplot(plot_rows, plot_columns, 4), plt.imshow(back_slash_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
 plt.title("back_slash_box")
 
-plt.subplot(plot_rows, plot_columns, 2), plt.imshow(forward_slash_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.subplot(plot_rows, plot_columns, 5), plt.imshow(forward_slash_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
 plt.title("forward_slash_box")
 
-plt.subplot(plot_rows, plot_columns, 3), plt.imshow(hot_dog_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.subplot(plot_rows, plot_columns, 6), plt.imshow(hot_dog_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
 plt.title("hot_dog_box")
 
-plt.subplot(plot_rows, plot_columns, 4), plt.imshow(hamburger_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.subplot(plot_rows, plot_columns, 7), plt.imshow(hamburger_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
 plt.title("hamburger_box")
 
-plt.subplot(plot_rows, plot_columns, 5), plt.imshow(x_plus_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.subplot(plot_rows, plot_columns, 8), plt.imshow(x_plus_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
 plt.title("x_plus_box")
 
-plt.subplot(plot_rows, plot_columns, 6), plt.imshow(forward_slash_plus_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.subplot(plot_rows, plot_columns, 9), plt.imshow(forward_slash_plus_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
 plt.title("forward_slash_plus_box")
 
-plt.subplot(plot_rows, plot_columns, 7), plt.imshow(back_slash_plus_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.subplot(plot_rows, plot_columns, 10), plt.imshow(back_slash_plus_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
 plt.title("back_slash_plus_box")
 
-plt.subplot(plot_rows, plot_columns, 8), plt.imshow(x_hot_dog_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.subplot(plot_rows, plot_columns, 11), plt.imshow(x_hot_dog_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
 plt.title("x_hot_dog_box")
 
-plt.subplot(plot_rows, plot_columns, 9), plt.imshow(x_hamburger_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.subplot(plot_rows, plot_columns, 12), plt.imshow(x_hamburger_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
 plt.title("x_hamburger_box")
 
-plt.subplot(plot_rows, plot_columns, 10), plt.imshow(center_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.subplot(plot_rows, plot_columns, 13), plt.imshow(center_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
 plt.title("center_box")
 
 plt.show()
