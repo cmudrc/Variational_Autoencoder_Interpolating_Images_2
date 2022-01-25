@@ -97,12 +97,44 @@ def center_box(additional_pixels, density, image_size):
 # plt.colorbar()
 # plt.show()
 
+
+'''
+# The Plot of each of the boxes
 image_size = 28  # The desired total shape size
-# and 1 adds a pixel on either side of a shape
-desired_additional_pixels = 7
-desired_density = 0.2 # Will be used to create matrices with various densities, ranges from 0 to 100, representing null space and fully solid space respectively
-B = center_box(desired_additional_pixels, desired_density, image_size)
-print("Figure")
-plt.matshow(B, cmap='gray')
-plt.colorbar()
+desired_additional_pixels = 0 # Will add pixels next to each square in the box
+desired_density = 1  # Determines the grayscale value
+
+plot_rows = 2
+plot_columns = 5
+plt.subplot(plot_rows, plot_columns, 1), plt.imshow(back_slash_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("back_slash_box")
+
+plt.subplot(plot_rows, plot_columns, 2), plt.imshow(forward_slash_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("forward_slash_box")
+
+plt.subplot(plot_rows, plot_columns, 3), plt.imshow(hot_dog_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("hot_dog_box")
+
+plt.subplot(plot_rows, plot_columns, 4), plt.imshow(hamburger_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("hamburger_box")
+
+plt.subplot(plot_rows, plot_columns, 5), plt.imshow(x_plus_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("x_plus_box")
+
+plt.subplot(plot_rows, plot_columns, 6), plt.imshow(forward_slash_plus_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("forward_slash_plus_box")
+
+plt.subplot(plot_rows, plot_columns, 7), plt.imshow(back_slash_plus_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("back_slash_plus_box")
+
+plt.subplot(plot_rows, plot_columns, 8), plt.imshow(x_hot_dog_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("x_hot_dog_box")
+
+plt.subplot(plot_rows, plot_columns, 9), plt.imshow(x_hamburger_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("x_hamburger_box")
+
+plt.subplot(plot_rows, plot_columns, 10), plt.imshow(center_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("center_box")
+
 plt.show()
+'''

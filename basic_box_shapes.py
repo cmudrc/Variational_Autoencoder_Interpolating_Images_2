@@ -1,7 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
-import math
-from Piecewise_Box_Functions import back_slash_array, basic_box_array, forward_slash_array, hot_dog_array, hamburger_array, center_array, update_array, add_pixels
+from Piecewise_Box_Functions import back_slash_array, basic_box_array, forward_slash_array, hot_dog_array, hamburger_array, update_array, add_pixels
 
 
 def basic_box(additional_pixels, density, image_size):
@@ -34,6 +32,7 @@ def diagonal_box_split(additional_pixels, density, image_size):
     return A*density
 
 
+'''
 n = 28  # The desired total shape size
 desired_number_of_additional_pixels = 4
 desired_density = 1 # Will be used to create matrices with various densities, ranges from 0 to 100, representing null space and fully solid space respectively
@@ -43,4 +42,4 @@ plt.matshow(B, cmap='gray')
 plt.title("Shape with " + str(desired_number_of_additional_pixels) + " Additonal Pixel(s)")
 plt.colorbar()
 plt.show()
-
+'''
