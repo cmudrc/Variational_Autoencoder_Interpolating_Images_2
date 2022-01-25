@@ -1,71 +1,20 @@
 import numpy as np
-from basic_box import basic_box
-from diagonal_box_split import diagonal_box_split
-from horizontal_vertical_box_split import horizontal_vertical_box_split
+from basic_box_shapes import basic_box, diagonal_box_split, horizontal_vertical_box_split
+from complex_box_shapes import back_slash_box, forward_slash_box, back_slash_plus_box, forward_slash_plus_box, hot_dog_box, hamburger_box, x_hamburger_box, x_hot_dog_box, x_plus_box, center_box
 import matplotlib.pyplot as plt  # Use to verify various box shapes and densities
 # The data is made such that it can be unpacked from the following tuple:
 # (box_matrix, box_density, additional_pixels, box_shape)
 
+box_functions = [basic_box, diagonal_box_split, horizontal_vertical_box_split, back_slash_box, forward_slash_box,
+                 back_slash_plus_box, forward_slash_plus_box, hot_dog_box, hamburger_box, x_hamburger_box,
+                 x_hot_dog_box, x_plus_box, center_box]
 
-########################################################################################################################
-# Basic Box data generator
-def make_basic_box(density_level: int, number_of_additional_pixels: int, density_increment, image_size) -> tuple:
-    density = density_level * density_increment  # The value that will be the non-zero terms in the matrix
-    # Will be used to create matrices with various densities, ranges from greater than 0 and equal to 1,
-    # representing null space and fully solid space respectively
-    A = basic_box(number_of_additional_pixels, density, image_size)
-    '''
-    # Use to verify various box shapes and densities
-    plt.matshow(A, cmap='gray')
-    plt.title("Basic Box with " + str(number_of_additional_pixels) + " Additonal Pixel(s) and " + str(density) + " Pixel Density")
-    plt.colorbar()
-    plt.show()
-    '''
-    new = (A, round(density, 5), number_of_additional_pixels, "Basic_Box")
-    return new
-
-
-########################################################################################################################
-# Diagonal Split Box data generator
-def make_diagonal_split_box(density_level: int, number_of_additional_pixels: int, density_increment, image_size) -> tuple:
-    density = density_level * density_increment  # The value that will be the non-zero terms in the matrix
-    # Will be used to create matrices with various densities, ranges from greater than 0 and equal to 1,
-    # representing null space and fully solid space respectively
-    A = diagonal_box_split(number_of_additional_pixels, density, image_size)
-    '''
-    # Use to verify various box shapes and densities
-    plt.matshow(A, cmap='gray')
-    plt.title("Diagonal Split Box with " + str(number_of_additional_pixels) + " Additonal Pixel(s) and " + str(density) + " Pixel Density")
-    plt.colorbar()
-    plt.show()
-    '''
-    new = (A, round(density, 5), number_of_additional_pixels, "Diagonal_Box_Split")
-    return new
-
-
-########################################################################################################################
-# Horizontal Vertical Split Box data generator
-def make_horizontal_vertical_split_box(density_level: int, number_of_additional_pixels: int, density_increment, image_size) -> tuple:
-    density = density_level * density_increment  # The value that will be the non-zero terms in the matrix
-    # Will be used to create matrices with various densities, ranges from greater than 0 and equal to 1,
-    # representing null space and fully solid space respectively
-    A = horizontal_vertical_box_split(number_of_additional_pixels, density, image_size)
-    '''
-    # Use to verify various box shapes and densities
-    plt.matshow(A, cmap='gray')
-    plt.title("Horizontal Vertical Split Box with " + str(number_of_additional_pixels) + " Additonal Pixel(s) and " + str(density) + " Pixel Density")
-    plt.colorbar()
-    plt.show()
-    '''
-    new = (A, round(density, 5), number_of_additional_pixels, "Horizontal_Box_Split")
-    return new
+# box_functions = [basic_box, diagonal_box_split, horizontal_vertical_box_split]
 
 
 ########################################################################################################################
 # Make the data using all the box code
 def make_boxes(image_size, number_of_densities, min_density, max_density):
-    # full_box = np.ones((image_size, image_size))  # May be useful to have data with a full box, however, this is not
-    # necessary for our work
     # Number of Densities # The amount of densities that will be tested
     # The minimum density IS NOT included in the data created, it only serves as a placeholder (Recommend: 0)
     # The maximum density IS included in the data created (Recommend: 1)
@@ -75,45 +24,31 @@ def make_boxes(image_size, number_of_densities, min_density, max_density):
 
     matrix = []
     # Creates basic boxes which consist of pixels surrounding the border of the image size
-    for i in range(1, number_of_densities + 1):
-        for j in range(image_size):
-            # If image size is extremely large, it may be beneficial to divide by 2 and round, as the system should
-            # never add more than half of the pixels in width
-            if (np.where((make_basic_box(i, j, density_increment, image_size)[0] == float(0)))[0] > 0).any():
-                # Want to index the matrix such that we search only through the box-array,
-                # then the array that lists the location of the 0's must be indexed, then if that is > 0,
-                # the object will be appended to the matrix
-                matrix.append(make_basic_box(i, j, density_increment, image_size))
-                print("Basic Box: " + str(j) + " Additonal Pixel(s) and " + str(
-                    round(i*density_increment, 5)) + " Pixel Density")
+    for function in box_functions:
+        for i in range(1, number_of_densities + 1):
+            for j in range(image_size):
+                density = i * density_increment
+                number_of_additional_pixels = j
+                A = (function(number_of_additional_pixels, density, image_size))
+                if (np.where((A == float(0)))[0] > 0).any():
+                    # Want to index the matrix such that we search only through the box-array,
+                    # then the array that lists the location of the 0's must be indexed, then if that is > 0,
+                    # the object will be appended to the matrix
 
-    # Creates diagonal split boxes which consist of pixels surrounding the border of the image as well as across the
-    # diagonals, thereby splitting the box into 4 parts
-    for i in range(1, number_of_densities + 1):
-        for j in range(image_size):
-            if (np.where((make_diagonal_split_box(i, j, density_increment, image_size)[0] == float(0)))[0] > 0).any():
-                matrix.append(make_diagonal_split_box(i, j, density_increment, image_size))
-                print("Diagonal Box Split: " + str(j) + " Additonal Pixel(s) and " + str(
-                    round(i*density_increment, 5)) + " Pixel Density")
-
-    # Creates horizontal split boxes which consist of pixels surrounding the border of the image as well as across the
-    # center horizontally and vertically, thereby splitting the box into 4 parts
-    for i in range(1, number_of_densities+1):
-        for j in range(image_size):
-            if (np.where((make_horizontal_vertical_split_box(i, j, density_increment, image_size)[0] == float(0)))[
-                    0] > 0).any():
-                matrix.append(make_horizontal_vertical_split_box(i, j, density_increment, image_size))
-                print("Horizontal Vertical Split: " + str(j) + " Additonal Pixel(s) and " + str(
-                    round(i * density_increment, 5)) + " Pixel Density")
+                    the_tuple = (A, round(density, 5), number_of_additional_pixels, str(function.__name__))
+                    matrix.append(the_tuple)
+                    print(str(function.__name__) + ": " + str(j) + " Additonal Pixel(s) and " + str(
+                        round(density, 5)) + " Pixel Density")
+                else:
+                    break  # ends the looping through additional pixels once there are no 0's present in the array
     return matrix
 
 
 ########################################################################################################################
 # Test the boxes!
-'''
 box_data = make_boxes(28, 5, 0, 1)
-desired_density = 0.2
-desired_additional_pixels = 5
+desired_density = 1
+desired_additional_pixels = 6
 box_type = "Basic_Box"
 print(len(box_data))
 print(box_data[0])
@@ -125,6 +60,45 @@ for j in range(len(box_data)):
             box_data[j][1]) + "\nAdditional Pixels: " + str(box_data[j][2]))
         plt.colorbar()
         plt.show()
+
+
 '''
+# The Plot of each of the boxes
+image_size = 28  # The desired total shape size
+desired_additional_pixels = 0 # Will add pixels next to each square in the box
+desired_density = 1  # Determines the grayscale value
 
+plot_rows = 2
+plot_columns = 5
+plt.subplot(plot_rows, plot_columns, 1), plt.imshow(back_slash_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("back_slash_box")
 
+plt.subplot(plot_rows, plot_columns, 2), plt.imshow(forward_slash_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("forward_slash_box")
+
+plt.subplot(plot_rows, plot_columns, 3), plt.imshow(hot_dog_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("hot_dog_box")
+
+plt.subplot(plot_rows, plot_columns, 4), plt.imshow(hamburger_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("hamburger_box")
+
+plt.subplot(plot_rows, plot_columns, 5), plt.imshow(x_plus_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("x_plus_box")
+
+plt.subplot(plot_rows, plot_columns, 6), plt.imshow(forward_slash_plus_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("forward_slash_plus_box")
+
+plt.subplot(plot_rows, plot_columns, 7), plt.imshow(back_slash_plus_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("back_slash_plus_box")
+
+plt.subplot(plot_rows, plot_columns, 8), plt.imshow(x_hot_dog_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("x_hot_dog_box")
+
+plt.subplot(plot_rows, plot_columns, 9), plt.imshow(x_hamburger_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("x_hamburger_box")
+
+plt.subplot(plot_rows, plot_columns, 10), plt.imshow(center_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
+plt.title("center_box")
+
+plt.show()
+'''
