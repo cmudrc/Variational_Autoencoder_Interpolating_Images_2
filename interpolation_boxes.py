@@ -73,28 +73,29 @@ number_internal = 13  # the number of interpolations that the model will find be
 num_interp = number_internal + 2  # the number of images to be pictured
 figure = np.zeros((image_size, image_size * num_interp))  # The matrix that will hold the pixel values of the images
 latent_matrix = []
-
 for column in range(latent_dimensionality):
     new_column = np.linspace(latent_point_1[column], latent_point_2[column], num_interp)
     latent_matrix.append(new_column)
 latent_matrix = np.array(latent_matrix).T  # Transposes the matrix so that each row can be easily indexed
 ########################################################################################################################
-# Interpolate the Images and Print out to User
-for latent_point in range(num_interp):  # cycles the latent points through the decoder model to create images
-    generated_image = decoder_model_boxes.predict(np.array([latent_matrix[latent_point]]))[0]  # generates an interpolated image based on the latent point
-    figure[0: image_size,  latent_point * image_size:(latent_point + 1) * image_size, ] = generated_image[:, :, -1]  # Inserts the Pixel Value for Each Image
 
 plot_rows = 1
-plot_columns = 3
-plot_height = 1
-plot_width = plot_height*num_interp
-plt.figure(figsize=(plot_width, plot_height))
+plot_columns = num_interp + 2
+
 plt.subplot(plot_rows, plot_columns, 1), plt.imshow(testX[number_1], cmap='gray')
 plt.title("First Interpolation Point:\n" + str(box_shape_test[number_1]) + "\nPixel Density: " + str(
             box_density_test[number_1]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_1]))  # + "\nPredicted Latent Point 1: " + str(latent_point_1)
-plt.subplot(plot_rows, plot_columns, 2), plt.imshow(figure, cmap='gray')
-plt.title("Interpolation from First to Second Interpolation Point")
-plt.subplot(plot_rows, plot_columns, 3), plt.imshow(testX[number_2], cmap='gray')
+
+
+# Interpolate the Images and Print out to User
+for latent_point in range(2, num_interp + 2):  # cycles the latent points through the decoder model to create images
+    # generated_image.append((decoder_model_boxes.predict(np.array([latent_matrix[latent_point]]))[0]))
+    generated_image = decoder_model_boxes.predict(np.array([latent_matrix[latent_point - 2]]))[0]  # generates an interpolated image based on the latent point
+    plt.subplot(plot_rows, plot_columns, latent_point), plt.imshow(generated_image[:, :, -1], cmap='gray')
+    plt.axis('off')
+
+
+plt.subplot(plot_rows, plot_columns, num_interp + 2), plt.imshow(testX[number_2], cmap='gray')
 plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nPixel Density: " + str(
             box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]))  # + "\nPredicted Latent Point 2: " + str(latent_point_2)
 plt.show()
