@@ -110,6 +110,7 @@ plt.subplot(plot_rows, plot_columns, num_interp + 2), plt.imshow(testX[number_2]
 plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nPixel Density: " + str(
             box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]))  # + "\nPredicted Latent Point 2: " + str(latent_point_2)
 
+
 plt.show()
 ########################################################################################################################
 # Latent Feature Cluster for Training Data (Only works for 2-dimensions)
