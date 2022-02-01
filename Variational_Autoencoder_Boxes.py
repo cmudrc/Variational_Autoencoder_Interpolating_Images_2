@@ -2,27 +2,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow
 import warnings
-import random
 import pandas as pd
 import seaborn as sns
-from tensorflow.keras.datasets import mnist
 from tensorflow.python.framework.ops import disable_eager_execution
 from box_data_set import make_boxes
 from sklearn.model_selection import train_test_split
-from tempfile import TemporaryFile
+from keras import backend as K
+
+
+def coeff_determination(y_true, y_pred):
+    SS_res =  K.sum(K.square( y_true-y_pred ))
+    SS_tot = K.sum(K.square( y_true - K.mean(y_true) ) )
+    return 1 - SS_res/(SS_tot + K.epsilon())
+
+
 warnings.filterwarnings('ignore')
 disable_eager_execution()
-latent_dimensionality = 2
-"""
-This code is used to download the MNIST data set, then a few sample values from the set are chosen to test
-
-(trainX, trainy), (testX, testy) = mnist.load_data()
-print('Training data shapes: X=%s, y=%s' % (trainX.shape, trainy.shape))
-print('Testing data shapes: X=%s, y=%s' % (testX.shape, testy.shape))
-print('Training data type:' + str(type(trainy)))
-print(testy)
-print(testX)
-"""
+latent_dimensionality = 5
 image_size = 28
 number_of_densities = 5
 min_density = 0
@@ -51,8 +47,7 @@ plt.show()
 
 
 """
-The images imported have an intensity ranging from 0 to 255, these values are normalized, making them between 0 and 1
-This data is then re-shaped
+# If the data does not range between 0 and 1, it must first be normalized, this data is then re-shaped
 
 train_data = trainX.astype('float32') / 255
 test_data = testX.astype('float32') / 255
@@ -120,9 +115,10 @@ encoded = encoder_model_boxes(input_data)
 decoded = decoder_model(encoded)
 autoencoder = tensorflow.keras.models.Model(input_data, decoded)
 autoencoder.summary()
+
+
 ########################################################################################################################
 # Autoencoder is trained using the training data
-
 def get_loss(distribution_mean, distribution_variance):
     def get_reconstruction_loss(y_true, y_pred):
         reconstruction_loss = tensorflow.keras.losses.mse(y_true, y_pred)
@@ -143,8 +139,9 @@ def get_loss(distribution_mean, distribution_variance):
     return total_loss
 
 
-autoencoder.compile(loss=get_loss(distribution_mean, distribution_variance), optimizer='adam')
-autoencoder.fit(train_data, train_data, epochs=150, batch_size=32, validation_data=(test_data, test_data))
+callback = tensorflow.keras.callbacks.EarlyStopping(monitor='loss', patience=5)
+autoencoder.compile(loss=get_loss(distribution_mean, distribution_variance), optimizer='adam', metrics=[coeff_determination])
+autoencoder.fit(train_data, train_data, epochs=150, batch_size=32, validation_data=(test_data, test_data), callbacks=[callback])
 ########################################################################################################################
 # Saving the Encoder Model
 # Saving model architecture to JSON file and Weights Separately
@@ -159,6 +156,13 @@ encoder_model_boxes.save_weights('model_tf', save_format='tf')  # tf format
 ########################################################################################################################
 # Model to Generate New Images
 decoder_model.save('decoder_model_boxes')
+########################################################################################################################
+# Prints out the important information about the model
+print("Number of Training Points: " + str(len(trainX)))
+print("Number of Test Points: " + str(len(testX)))
+print("Latent Space Dimensionality: " + str(latent_dimensionality))
+
+
 ########################################################################################################################
 # Latent Feature Cluster for Test Data
 x = []
@@ -179,21 +183,3 @@ plt.figure(figsize=(8, 6))
 sns.scatterplot(x='x', y='y', hue='z', data=df)
 plt.show()
 ########################################################################################################################
-# Latent Feature Cluster for Training Data
-x = []
-y = []
-z = []
-for i in range(len(box_shape_train)):
-    z.append(box_shape_train[i])
-    op = encoder_model_boxes.predict(np.array([train_data[i]]))
-    x.append(op[0][0])
-    y.append(op[0][1])
-
-df = pd.DataFrame()
-df['x'] = x
-df['y'] = y
-df['z'] = ["Shape:" + str(k) for k in z]
-
-plt.figure(figsize=(8, 6))
-sns.scatterplot(x='x', y='y', hue='z', data=df)
-plt.show()

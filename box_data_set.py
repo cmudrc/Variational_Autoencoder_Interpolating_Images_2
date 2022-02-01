@@ -49,14 +49,14 @@ def make_boxes(image_size, number_of_densities, min_density, max_density):
 # Test the boxes!
 box_data = make_boxes(28, 5, 0, 1)
 desired_density = 1
-desired_additional_pixels = 6
-box_type = "Basic_Box"
+desired_additional_pixels = 4
+desired_box_type = "horizontal_vertical_box_split"
 print(len(box_data))
 print(box_data[0])
 for j in range(len(box_data)):
-    if desired_density == box_data[j][1] and desired_additional_pixels == int(box_data[j][2]):
+    if desired_additional_pixels == int(box_data[j][2]) and desired_box_type == box_data[j][3]:
         plt.matshow(box_data[j][0],
-                    cmap='gray')  # Where index1 is the row, and index2 is the column(which should remain 0)
+                    cmap='gray', vmin=0, vmax=1)  # Where index1 is the row, and index2 is the column(which should remain 0)
         plt.title(str(box_data[j][3]) + "\nPixel Density: " + str(
             box_data[j][1]) + "\nAdditional Pixels: " + str(box_data[j][2]))
         plt.colorbar()
@@ -67,8 +67,8 @@ image_size = 28  # The desired total shape size
 desired_additional_pixels = 0 # Will add pixels next to each square in the box
 desired_density = 1  # Determines the grayscale value
 
-plot_rows = 3
-plot_columns = 5
+plot_rows = 2
+plot_columns = 6
 plt.subplot(plot_rows, plot_columns, 1), plt.imshow(basic_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
 plt.title("basic_box")
 
@@ -104,9 +104,6 @@ plt.title("x_hot_dog_box")
 
 plt.subplot(plot_rows, plot_columns, 12), plt.imshow(x_hamburger_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
 plt.title("x_hamburger_box")
-
-plt.subplot(plot_rows, plot_columns, 13), plt.imshow(center_box(desired_additional_pixels, desired_density, image_size), cmap='gray')
-plt.title("center_box")
 
 plt.show()
 '''
