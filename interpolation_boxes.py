@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import tensorflow
 import warnings
 from tensorflow.python.framework.ops import disable_eager_execution
+import seaborn as sns
+import pandas as pd
+from sklearn.manifold import TSNE
 warnings.filterwarnings('ignore')
 disable_eager_execution()
 ########################################################################################################################
@@ -32,28 +35,35 @@ image_size = np.shape(testX)[-1]  # Determines the size of the images
 test_data = np.reshape(testX, (len(testX), image_size, image_size, 1))
 ########################################################################################################################
 # Select Latent Points to Interpolate Between
-""" # USE ONCE TEST DATA IS LARGE ENOUGH
+# USE ONCE TEST DATA IS LARGE ENOUGH
 # Selecting a particular set of boxes for interpolation
-box_density_1 = 0.2
-box_density_2 = 1
+# Select from : basic_box, diagonal_box_split, horizontal_vertical_box_split, back_slash_box, forward_slash_box,
+#               back_slash_plus_box, forward_slash_plus_box, hot_dog_box, hamburger_box, x_hamburger_box,
+#               x_hot_dog_box, x_plus_box
 
-additional_pixels_1 = 1
-additional_pixels_2 = 0
-
-box_shape_1 = "Basic_Box"  # Select from "Basic_Box", "Diagonal_Box_Split", and "Horizontal_Box_Split"
-box_shape_2 = "Basic_Box"
+box_shape_1 = "basic_box"
+box_shape_2 = "horizontal_vertical_box_split"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
-number_1 = [i for i in range(len(testX)) if box_density_test[i] == box_density_1 and additional_pixels_test[i] == additional_pixels_1 and box_shape_test[i] == box_shape_1]
-number_2 = [i for i in range(len(testX)) if box_density_test[i] == box_density_2 and additional_pixels_test[i] == additional_pixels_2 and box_shape_test[i] == box_shape_2]
-"""
+indices_1 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_1]
+indices_2 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_2]
 
+print(indices_1)
+print(indices_2)
+
+# choose a random index
+number_1 = random.choice(indices_1)
+number_2 = random.choice(indices_2)
+
+'''
+# Use if not enough test data
 # Randomly selects two points for interpolation
 number_1 = [i for i in range(len(testX))]  # creates a list of possible indices
 number_1 = random.choice(number_1)  # chooses a random index
 
 number_2 = [i for i in range(len(testX)) if i != number_1]
 number_2 = random.choice(number_2)  # chooses a random index
+'''
 
 # resize the array to match the prediction size requirement
 number_1_expand = np.expand_dims(number_1, axis=0)
@@ -79,10 +89,11 @@ for column in range(latent_dimensionality):
 latent_matrix = np.array(latent_matrix).T  # Transposes the matrix so that each row can be easily indexed
 ########################################################################################################################
 
-plot_rows = 1
+plot_rows = 2
 plot_columns = num_interp + 2
 
-plt.subplot(plot_rows, plot_columns, 1), plt.imshow(testX[number_1], cmap='gray')
+# Plot the First Interpolation Point
+plt.subplot(plot_rows, plot_columns, 1), plt.imshow(testX[number_1], cmap='gray', vmin=0, vmax=1)
 plt.title("First Interpolation Point:\n" + str(box_shape_test[number_1]) + "\nPixel Density: " + str(
             box_density_test[number_1]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_1]))  # + "\nPredicted Latent Point 1: " + str(latent_point_1)
 
@@ -91,11 +102,57 @@ plt.title("First Interpolation Point:\n" + str(box_shape_test[number_1]) + "\nPi
 for latent_point in range(2, num_interp + 2):  # cycles the latent points through the decoder model to create images
     # generated_image.append((decoder_model_boxes.predict(np.array([latent_matrix[latent_point]]))[0]))
     generated_image = decoder_model_boxes.predict(np.array([latent_matrix[latent_point - 2]]))[0]  # generates an interpolated image based on the latent point
-    plt.subplot(plot_rows, plot_columns, latent_point), plt.imshow(generated_image[:, :, -1], cmap='gray')
+    plt.subplot(plot_rows, plot_columns, latent_point), plt.imshow(generated_image[:, :, -1], cmap='gray', vmin=0, vmax=1)
     plt.axis('off')
 
-
-plt.subplot(plot_rows, plot_columns, num_interp + 2), plt.imshow(testX[number_2], cmap='gray')
+# Plot the Second Interpolation Point
+plt.subplot(plot_rows, plot_columns, num_interp + 2), plt.imshow(testX[number_2], cmap='gray', vmin=0, vmax=1)
 plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nPixel Density: " + str(
             box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]))  # + "\nPredicted Latent Point 2: " + str(latent_point_2)
+
 plt.show()
+########################################################################################################################
+# Latent Feature Cluster for Training Data (Only works for 2-dimensions)
+trainX = box_matrix_train
+print(np.shape(trainX))
+train_data = np.reshape(trainX, (len(trainX), image_size, image_size, 1))
+print(train_data.shape)
+x = []
+y = []
+z = []
+for i in range(len(box_shape_train)):
+    z.append(box_shape_train[i])
+    op = encoder_model_boxes.predict(np.array([train_data[i]]))
+    x.append(op[0][0])
+    y.append(op[0][1])
+
+df = pd.DataFrame()
+df['x'] = x
+df['y'] = y
+df['z'] = ["Shape:" + str(k) for k in z]  # Acts as a grouping variable to produce points with different colors
+
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x='x', y='y', hue='z', data=df)
+plt.show()
+########################################################################################################################
+'''
+# Latent Feature Cluster for Training Data using T-SNE
+flattened = np.reshape(trainX, (np.shape(trainX)[0], np.shape(trainX)[1]**2))
+print(flattened.shape)
+model = TSNE(n_components=2, random_state=0, learning_rate=200)
+# configuring the parameteres
+# the number of components = dimension of the embedded space
+# default perplexity = 30
+# default learning rate = 200 "If the learning rate is too high, the data may look like a ‘ball’ with any point
+# approximately equidistant from its nearest neighbours. If the learning rate is too low,
+# most points may look compressed in a dense cloud with few outliers."
+# default Maximum number of iterations for the optimization = 1000
+tsne_data = model.fit_transform(flattened) # When there are more data points, trainX should be the first couple hundred points so TSNE doesn't take too long
+# creating a new data frame which help us in ploting the result data
+tsne_data = np.vstack((tsne_data.T, box_shape_train)).T
+tsne_df = pd.DataFrame(data=tsne_data, columns=("Dim_1", "Dim_2", "Shape:"))
+# Ploting the result of tsne
+plotty = sns.FacetGrid(tsne_df, hue="Shape:", size=6, legend_out=True).map(plt.scatter, 'Dim_1', 'Dim_2')  # .add_legend()
+plotty.add_legend()
+plt.show()
+'''
