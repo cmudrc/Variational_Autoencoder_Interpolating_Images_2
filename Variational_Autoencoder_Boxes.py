@@ -139,9 +139,23 @@ def get_loss(distribution_mean, distribution_variance):
     return total_loss
 
 
-callback = tensorflow.keras.callbacks.EarlyStopping(monitor='loss', patience=5)
+checkpoint_filepath = 'train_ckpt/cp.ckpt'
+
+callback = [tensorflow.keras.callbacks.EarlyStopping(monitor='loss', patience=5),
+            tensorflow.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath, monitor='val_loss', save_best_only=True, save_weights_only=True, mode='min')]
 autoencoder.compile(loss=get_loss(distribution_mean, distribution_variance), optimizer='adam', metrics=[coeff_determination])
-autoencoder.fit(train_data, train_data, epochs=150, batch_size=32, validation_data=(test_data, test_data), callbacks=[callback])
+autoencoder_fit = autoencoder.fit(train_data, train_data, epochs=150, batch_size=32, validation_data=(test_data, test_data), callbacks=[callback])
+########################################################################################################################
+# Plotting the Loss Compared to R^2
+plt.plot(autoencoder_fit.history["loss"], label="Training Loss")
+plt.plot(autoencoder_fit.history["val_loss"], label="Validation Loss")
+plt.legend()
+plt.show()
+
+plt.plot(autoencoder_fit.history["loss"], autoencoder_fit.history["coeff_determination"], label="Training Loss")
+plt.legend()
+plt.show()
+
 ########################################################################################################################
 # Saving the Encoder Model
 # Saving model architecture to JSON file and Weights Separately
