@@ -10,19 +10,23 @@ from sklearn.model_selection import train_test_split
 from keras import backend as K
 
 
-def coeff_determination(y_true, y_pred):
-    SS_res =  K.sum(K.square( y_true-y_pred ))
-    SS_tot = K.sum(K.square( y_true - K.mean(y_true) ) )
-    return 1 - SS_res/(SS_tot + K.epsilon())
-
-
 warnings.filterwarnings('ignore')
 disable_eager_execution()
-latent_dimensionality = 5
-image_size = 28
-number_of_densities = 5
-min_density = 0
-max_density = 1
+
+########################################################################################################################
+# Define the parameters of the Data
+image_size = 28  # pixel size of the data you wish you compute (Even numbers required)
+number_of_densities = 5  # The number of densities that will be equally spaced between the min and max
+min_density = 0  # (Recommend: 0) The minimum density IS NOT included in the data created, it only serves as a placeholder
+max_density = 1  # (Recommend: 1) The maximum density IS included in the data created
+# Choosing different mins and maxes will require the data to be normalized
+
+
+# Define the parameters of the Autoencoder
+latent_dimensionality = 2
+early_stopping_patience = 9  # "Number of epochs with no improvement after which training will be stopped." - Keras
+
+########################################################################################################################
 box_data = make_boxes(image_size, number_of_densities, min_density, max_density)
 box_data_train, box_data_test = train_test_split(box_data, test_size=0.15)  # Uses a similar percentage as MNIST Data
 
@@ -49,8 +53,8 @@ plt.show()
 """
 # If the data does not range between 0 and 1, it must first be normalized, this data is then re-shaped
 
-train_data = trainX.astype('float32') / 255
-test_data = testX.astype('float32') / 255
+train_data = trainX.astype('float32') / (max_density-min_density)
+test_data = testX.astype('float32') / (max_density-min_density)
 """
 train_data = np.reshape(trainX, (len(trainX), image_size, image_size, 1))
 test_data = np.reshape(testX, (len(testX), image_size, image_size, 1))
@@ -118,7 +122,14 @@ autoencoder.summary()
 
 
 ########################################################################################################################
-# Autoencoder is trained using the training data
+# Functions defined to be used by the Autoencoder
+
+def coeff_determination(y_true, y_pred):  # This function will be used by the autoencoder to return the R^2 value
+    SS_res = K.sum(K.square(y_true-y_pred))
+    SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
+    return 1 - SS_res/(SS_tot + K.epsilon())
+
+
 def get_loss(distribution_mean, distribution_variance):
     def get_reconstruction_loss(y_true, y_pred):
         reconstruction_loss = tensorflow.keras.losses.mse(y_true, y_pred)
@@ -139,9 +150,11 @@ def get_loss(distribution_mean, distribution_variance):
     return total_loss
 
 
-checkpoint_filepath = 'train_ckpt/cp.ckpt'
+########################################################################################################################
+# Autoencoder is trained using the training data
+checkpoint_filepath = 'train_ckpt/cp.ckpt'  # A filepath is defined for the checkpoint data to be saved
 
-callback = [tensorflow.keras.callbacks.EarlyStopping(monitor='loss', patience=5),
+callback = [tensorflow.keras.callbacks.EarlyStopping(monitor='loss', patience=early_stopping_patience),
             tensorflow.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath, monitor='val_loss', save_best_only=True, save_weights_only=True, mode='min')]
 autoencoder.compile(loss=get_loss(distribution_mean, distribution_variance), optimizer='adam', metrics=[coeff_determination])
 autoencoder_fit = autoencoder.fit(train_data, train_data, epochs=150, batch_size=32, validation_data=(test_data, test_data), callbacks=[callback])
@@ -152,7 +165,10 @@ plt.plot(autoencoder_fit.history["val_loss"], label="Validation Loss")
 plt.legend()
 plt.show()
 
-plt.plot(autoencoder_fit.history["loss"], autoencoder_fit.history["coeff_determination"], label="Training Loss")
+plt.plot(autoencoder_fit.history["coeff_determination"], label="Training Coefficient of Determination")
+plt.plot(autoencoder_fit.history["val_coeff_determination"], label="Validation Coefficient of Determination")
+plt.axhline(y=0.95, color='r', linestyle='-', label="95% Coefficient of Determination")
+plt.ylim(bottom=0)
 plt.legend()
 plt.show()
 
