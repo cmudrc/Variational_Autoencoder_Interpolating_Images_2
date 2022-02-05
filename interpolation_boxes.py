@@ -113,6 +113,23 @@ plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nP
 
 plt.show()
 ########################################################################################################################
+# Grid Interpolation
+generator_model = decoder_model_boxes
+
+x_values = np.linspace(-3, 3, 30)
+y_values = np.linspace(-3, 3, 30)
+
+figure = np.zeros((28 * 30, 28 * 30))
+for ix, x in enumerate(x_values):
+    for iy, y in enumerate(y_values):
+        latent_point = np.array([[x, y]])
+        generated_image = generator_model.predict(latent_point)[0]
+        figure[ix * 28:(ix + 1) * 28, iy * 28:(iy + 1) * 28, ] = generated_image[:, :, -1]
+
+plt.figure(figsize=(15, 15))
+plt.imshow(figure, cmap='gray', extent=[3, -3, 3, -3])
+plt.show()
+########################################################################################################################
 # Latent Feature Cluster for Training Data (Only works for 2-dimensions)
 trainX = box_matrix_train
 print(np.shape(trainX))
