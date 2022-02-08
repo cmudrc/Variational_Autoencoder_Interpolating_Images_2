@@ -153,11 +153,11 @@ plt.figure(figsize=(8, 6))
 sns.scatterplot(x='x', y='y', hue='z', data=df)
 plt.show()
 ########################################################################################################################
-'''
+
 # Latent Feature Cluster for Training Data using T-SNE
 flattened = np.reshape(trainX, (np.shape(trainX)[0], np.shape(trainX)[1]**2))
 print(flattened.shape)
-model = TSNE(n_components=2, random_state=0, learning_rate=200)
+model = TSNE(n_components=2, random_state=0)
 # configuring the parameteres
 # the number of components = dimension of the embedded space
 # default perplexity = 30
@@ -167,10 +167,18 @@ model = TSNE(n_components=2, random_state=0, learning_rate=200)
 # default Maximum number of iterations for the optimization = 1000
 tsne_data = model.fit_transform(flattened) # When there are more data points, trainX should be the first couple hundred points so TSNE doesn't take too long
 # creating a new data frame which help us in ploting the result data
-tsne_data = np.vstack((tsne_data.T, box_shape_train)).T
+print(tsne_data)
+print(tsne_data[:, 1])
+# tsne_data = np.vstack((tsne_data.T, box_shape_train)).T
+
+'''
 tsne_df = pd.DataFrame(data=tsne_data, columns=("Dim_1", "Dim_2", "Shape:"))
+print(tsne_df)
+
 # Ploting the result of tsne
 plotty = sns.FacetGrid(tsne_df, hue="Shape:", size=6, legend_out=True).map(plt.scatter, 'Dim_1', 'Dim_2')  # .add_legend()
 plotty.add_legend()
 plt.show()
 '''
+plt.scatter(tsne_data[:, 0], tsne_data[:, 1])
+plt.show()
