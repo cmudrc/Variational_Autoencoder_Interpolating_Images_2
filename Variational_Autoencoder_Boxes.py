@@ -167,11 +167,36 @@ plt.show()
 
 plt.plot(autoencoder_fit.history["coeff_determination"], label="Training Coefficient of Determination")
 plt.plot(autoencoder_fit.history["val_coeff_determination"], label="Validation Coefficient of Determination")
+plt.title("Best Training R^2: " + str(max(autoencoder_fit.history["coeff_determination"])) + "\nBest Validation R^2: " + str(max(autoencoder_fit.history["val_coeff_determination"])))
 plt.axhline(y=0.95, color='r', linestyle='-', label="95% Coefficient of Determination")
 plt.ylim(bottom=0)
 plt.legend()
 plt.show()
 
+
+# Plot Loss and R^2 Simultaneously
+fig, ax1 = plt.subplots()
+plt.title("Best Training R^2: " + str(max(autoencoder_fit.history["coeff_determination"])) + "\nBest Validation R^2: "
+          + str(max(autoencoder_fit.history["val_coeff_determination"])) + "\nTotal Epochs: " + str(len(autoencoder_fit.history["coeff_determination"])))
+ax1.set_xlabel('Epochs')
+ax1.set_ylabel('Loss')
+plt.xlim(0, 150)
+plt.ylim(0, 150)
+ax1.plot(autoencoder_fit.history["loss"], label="Training Loss", color='blue')
+ax1.plot(autoencoder_fit.history["val_loss"], label="Validation Loss", color='orange')
+# ax1.tick_params(axis='y')
+
+ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+ax2.set_ylabel('Coefficient of Determination')  # we already handled the x-label with ax1
+plt.ylim(0, 1.1)
+ax2.plot(autoencoder_fit.history["coeff_determination"], label="Training Coefficient of Determination", color='cornflowerblue')
+ax2.plot(autoencoder_fit.history["val_coeff_determination"], label="Validation Coefficient of Determination", color='moccasin')
+ax2.axhline(y=0.95, color='r', linestyle='-', label="95% Coefficient of Determination")
+# ax2.tick_params(axis='y')
+fig.legend()
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
+plt.show()
 ########################################################################################################################
 # Saving the Encoder Model
 # Saving model architecture to JSON file and Weights Separately
