@@ -7,6 +7,7 @@ from tensorflow.python.framework.ops import disable_eager_execution
 import seaborn as sns
 import pandas as pd
 from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
 warnings.filterwarnings('ignore')
 disable_eager_execution()
 ########################################################################################################################
@@ -157,10 +158,18 @@ plt.show()
 # Latent Feature Cluster for Training Data using T-SNE
 flattened = np.reshape(trainX, (np.shape(trainX)[0], np.shape(trainX)[1]**2))
 print(flattened.shape)
-model = TSNE(n_components=2, random_state=0)
-# configuring the parameteres
+perplexity = 7
+learning_rate = 20
+
+pca = PCA(n_components=28)
+flattened = pca.fit_transform(flattened)
+
+
+model = TSNE(n_components=2, random_state=0,  perplexity=perplexity, learning_rate=learning_rate)  # Perplexity(5-50) | learning_rate(10-1000)
+# configuring the parameters
 # the number of components = dimension of the embedded space
-# default perplexity = 30
+# default perplexity = 30 " Perplexity balances the attention t-SNE gives to local and global aspects of the data.
+# It is roughly a guess of the number of close neighbors each point has. ..a denser dataset ... requires higher perplexity value"
 # default learning rate = 200 "If the learning rate is too high, the data may look like a ‘ball’ with any point
 # approximately equidistant from its nearest neighbours. If the learning rate is too low,
 # most points may look compressed in a dense cloud with few outliers."
@@ -179,6 +188,18 @@ print(tsne_df)
 plotty = sns.FacetGrid(tsne_df, hue="Shape:", size=6, legend_out=True).map(plt.scatter, 'Dim_1', 'Dim_2')  # .add_legend()
 plotty.add_legend()
 plt.show()
-'''
+
 plt.scatter(tsne_data[:, 0], tsne_data[:, 1])
 plt.show()
+'''
+
+plt.figure(figsize=(8, 6))
+plt.title("T-SNE\nPerplexity: " + str(perplexity) + "\nLearning Rate: " + str(learning_rate))
+sns.scatterplot(x=tsne_data[:, 0], y=tsne_data[:, 1], hue='z', data=df)
+plt.show()
+
+
+print(z[15])
+plt.matshow(trainX[15], cmap='gray')
+plt.show()
+
