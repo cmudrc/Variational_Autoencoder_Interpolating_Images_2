@@ -8,6 +8,7 @@ import seaborn as sns
 import pandas as pd
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 warnings.filterwarnings('ignore')
 disable_eager_execution()
 ########################################################################################################################
@@ -114,6 +115,7 @@ plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nP
 
 plt.show()
 ########################################################################################################################
+'''
 # Grid Interpolation
 generator_model = decoder_model_boxes
 
@@ -130,6 +132,7 @@ for ix, x in enumerate(x_values):
 plt.figure(figsize=(15, 15))
 plt.imshow(figure, cmap='gray', extent=[3, -3, 3, -3])
 plt.show()
+'''
 ########################################################################################################################
 # Latent Feature Cluster for Training Data (Only works for 2-dimensions)
 trainX = box_matrix_train
@@ -154,17 +157,14 @@ plt.figure(figsize=(8, 6))
 sns.scatterplot(x='x', y='y', hue='z', data=df)
 plt.show()
 ########################################################################################################################
-
 # Latent Feature Cluster for Training Data using T-SNE
 flattened = np.reshape(trainX, (np.shape(trainX)[0], np.shape(trainX)[1]**2))
 print(flattened.shape)
 perplexity = 7
 learning_rate = 20
 
-pca = PCA(n_components=28)
+pca = PCA(n_components=latent_dimensionality)
 flattened = pca.fit_transform(flattened)
-
-
 model = TSNE(n_components=2, random_state=0,  perplexity=perplexity, learning_rate=learning_rate)  # Perplexity(5-50) | learning_rate(10-1000)
 # configuring the parameters
 # the number of components = dimension of the embedded space
@@ -173,33 +173,42 @@ model = TSNE(n_components=2, random_state=0,  perplexity=perplexity, learning_ra
 # default learning rate = 200 "If the learning rate is too high, the data may look like a ‘ball’ with any point
 # approximately equidistant from its nearest neighbours. If the learning rate is too low,
 # most points may look compressed in a dense cloud with few outliers."
-# default Maximum number of iterations for the optimization = 1000
 tsne_data = model.fit_transform(flattened) # When there are more data points, trainX should be the first couple hundred points so TSNE doesn't take too long
-# creating a new data frame which help us in ploting the result data
-print(tsne_data)
-print(tsne_data[:, 1])
-# tsne_data = np.vstack((tsne_data.T, box_shape_train)).T
-
-'''
-tsne_df = pd.DataFrame(data=tsne_data, columns=("Dim_1", "Dim_2", "Shape:"))
-print(tsne_df)
-
-# Ploting the result of tsne
-plotty = sns.FacetGrid(tsne_df, hue="Shape:", size=6, legend_out=True).map(plt.scatter, 'Dim_1', 'Dim_2')  # .add_legend()
-plotty.add_legend()
-plt.show()
-
-plt.scatter(tsne_data[:, 0], tsne_data[:, 1])
-plt.show()
-'''
 
 plt.figure(figsize=(8, 6))
-plt.title("T-SNE\nPerplexity: " + str(perplexity) + "\nLearning Rate: " + str(learning_rate))
+plt.title("T-SNE\nPerplexity: " + str(perplexity) + "\nLearning Rate: " + str(learning_rate) + "\nLatent Space Dimensionality: " + str(latent_dimensionality))
 sns.scatterplot(x=tsne_data[:, 0], y=tsne_data[:, 1], hue='z', data=df)
 plt.show()
+########################################################################################################################
+# Latent Feature Cluster for Training Data using T-SNE and Predicted Latent Points?
+z = []
+latent_points = []
+for i in range(len(box_shape_train)):
+    z.append(box_shape_train[i])
+    op = encoder_model_boxes.predict(np.array([train_data[i]]))
+    latent_points.append(op[0])
+latent_points = np.array(latent_points)
+print(np.shape(latent_points))
 
+# flattened = np.reshape(trainX, (np.shape(trainX)[0], np.shape(trainX)[1]**2))
+# print(flattened.shape)
+perplexity = 7
+learning_rate = 20
 
-print(z[15])
-plt.matshow(trainX[15], cmap='gray')
+pca = PCA(n_components=latent_dimensionality)
+pca_fit = pca.fit_transform(latent_points)
+model = TSNE(n_components=2, random_state=0,  perplexity=perplexity, learning_rate=learning_rate)  # Perplexity(5-50) | learning_rate(10-1000)
+# configuring the parameters
+# the number of components = dimension of the embedded space
+# default perplexity = 30 " Perplexity balances the attention t-SNE gives to local and global aspects of the data.
+# It is roughly a guess of the number of close neighbors each point has. ..a denser dataset ... requires higher perplexity value"
+# default learning rate = 200 "If the learning rate is too high, the data may look like a ‘ball’ with any point
+# approximately equidistant from its nearest neighbours. If the learning rate is too low,
+# most points may look compressed in a dense cloud with few outliers."
+tsne_data = model.fit_transform(pca_fit) # When there are more data points, trainX should be the first couple hundred points so TSNE doesn't take too long
+
+plt.figure(figsize=(8, 6))
+plt.title("T-SNE with Predicted Points \nPerplexity: " + str(perplexity) + "\nLearning Rate: " + str(learning_rate) + "\nLatent Space Dimensionality: " + str(latent_dimensionality))
+sns.scatterplot(x=tsne_data[:, 0], y=tsne_data[:, 1], hue='z', data=df)
 plt.show()
 
