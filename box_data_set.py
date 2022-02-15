@@ -35,7 +35,7 @@ def make_boxes(image_size, number_of_densities, min_density, max_density):
                     # then the array that lists the location of the 0's must be indexed, then if that is > 0,
                     # the object will be appended to the matrix
 
-                    the_tuple = (A, round(density, 5), number_of_additional_pixels, str(function.__name__))
+                    the_tuple = (A, round(density, 5), number_of_additional_pixels, str(function.__name__), "ground_truth")
                     matrix.append(the_tuple)
                     print(str(function.__name__) + ": " + str(j) + " Additonal Pixel(s) and " + str(
                         round(density, 5)) + " Pixel Density")
