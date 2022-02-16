@@ -90,7 +90,7 @@ for column in range(latent_dimensionality):
     latent_matrix.append(new_column)
 latent_matrix = np.array(latent_matrix).T  # Transposes the matrix so that each row can be easily indexed
 ########################################################################################################################
-
+# Plotting the Interpolation
 plot_rows = 2
 plot_columns = num_interp + 2
 
@@ -99,11 +99,12 @@ plt.subplot(plot_rows, plot_columns, 1), plt.imshow(testX[number_1], cmap='gray'
 plt.title("First Interpolation Point:\n" + str(box_shape_test[number_1]) + "\nPixel Density: " + str(
             box_density_test[number_1]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_1]))  # + "\nPredicted Latent Point 1: " + str(latent_point_1)
 
-
+predicted_interps = []  # Used to store the predicted interpolations
 # Interpolate the Images and Print out to User
 for latent_point in range(2, num_interp + 2):  # cycles the latent points through the decoder model to create images
     # generated_image.append((decoder_model_boxes.predict(np.array([latent_matrix[latent_point]]))[0]))
     generated_image = decoder_model_boxes.predict(np.array([latent_matrix[latent_point - 2]]))[0]  # generates an interpolated image based on the latent point
+    predicted_interps.append(generated_image[:, :, -1])
     plt.subplot(plot_rows, plot_columns, latent_point), plt.imshow(generated_image[:, :, -1], cmap='gray', vmin=0, vmax=1)
     plt.axis('off')
 
@@ -114,6 +115,14 @@ plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nP
 
 
 plt.show()
+########################################################################################################################
+predicted_interps = np.reshape(predicted_interps, (num_interp, image_size**2))
+
+for i in range(num_interp-1):
+    difference = predicted_interps[i] - predicted_interps[i+1]
+    plt.boxplot(difference, positions=[i])
+plt.show()
+
 ########################################################################################################################
 '''
 # Grid Interpolation
@@ -136,9 +145,7 @@ plt.show()
 ########################################################################################################################
 # Latent Feature Cluster for Training Data (Only works for 2-dimensions)
 trainX = box_matrix_train
-print(np.shape(trainX))
 train_data = np.reshape(trainX, (len(trainX), image_size, image_size, 1))
-print(train_data.shape)
 x = []
 y = []
 z = []
@@ -159,7 +166,6 @@ plt.show()
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using T-SNE
 flattened = np.reshape(trainX, (np.shape(trainX)[0], np.shape(trainX)[1]**2))
-print(flattened.shape)
 perplexity = 7
 learning_rate = 20
 
@@ -176,7 +182,7 @@ model = TSNE(n_components=2, random_state=0,  perplexity=perplexity, learning_ra
 tsne_data = model.fit_transform(flattened) # When there are more data points, trainX should be the first couple hundred points so TSNE doesn't take too long
 
 plt.figure(figsize=(8, 6))
-plt.title("T-SNE\nPerplexity: " + str(perplexity) + "\nLearning Rate: " + str(learning_rate) + "\nLatent Space Dimensionality: " + str(latent_dimensionality))
+plt.title("T-SNE of Original Training Data\nPerplexity: " + str(perplexity) + "\nLearning Rate: " + str(learning_rate) + "\nLatent Space Dimensionality: " + str(latent_dimensionality))
 sns.scatterplot(x=tsne_data[:, 0], y=tsne_data[:, 1], hue='z', data=df)
 plt.show()
 ########################################################################################################################
@@ -188,14 +194,10 @@ for i in range(len(box_shape_train)):
     op = encoder_model_boxes.predict(np.array([train_data[i]]))
     latent_points.append(op[0])
 latent_points = np.array(latent_points)
-print(np.shape(latent_points))
-
-# flattened = np.reshape(trainX, (np.shape(trainX)[0], np.shape(trainX)[1]**2))
-# print(flattened.shape)
 perplexity = 7
 learning_rate = 20
 
-pca = PCA(n_components=latent_dimensionality)
+pca = PCA(n_components=2)
 pca_fit = pca.fit_transform(latent_points)
 model = TSNE(n_components=2, random_state=0,  perplexity=perplexity, learning_rate=learning_rate)  # Perplexity(5-50) | learning_rate(10-1000)
 # configuring the parameters
@@ -210,5 +212,33 @@ tsne_data = model.fit_transform(pca_fit) # When there are more data points, trai
 plt.figure(figsize=(8, 6))
 plt.title("T-SNE with Predicted Points \nPerplexity: " + str(perplexity) + "\nLearning Rate: " + str(learning_rate) + "\nLatent Space Dimensionality: " + str(latent_dimensionality))
 sns.scatterplot(x=tsne_data[:, 0], y=tsne_data[:, 1], hue='z', data=df)
+plt.show()
+
+########################################################################################################################
+# Latent Feature Cluster for Training Data using PCA and Predicted Latent Points?
+z = []
+latent_points = []
+for i in range(len(box_shape_train)):
+    z.append(box_shape_train[i])
+    op = encoder_model_boxes.predict(np.array([train_data[i]]))
+    latent_points.append(op[0])
+latent_points = np.array(latent_points)
+
+perplexity = 7
+learning_rate = 20
+
+pca = PCA(n_components=2)
+pca_fit = pca.fit_transform(latent_points)
+# configuring the parameters
+# the number of components = dimension of the embedded space
+# default perplexity = 30 " Perplexity balances the attention t-SNE gives to local and global aspects of the data.
+# It is roughly a guess of the number of close neighbors each point has. ..a denser dataset ... requires higher perplexity value"
+# default learning rate = 200 "If the learning rate is too high, the data may look like a ‘ball’ with any point
+# approximately equidistant from its nearest neighbours. If the learning rate is too low,
+# most points may look compressed in a dense cloud with few outliers."
+
+plt.figure(figsize=(8, 6))
+plt.title("PCA with Predicted Points \nPerplexity: " + str(perplexity) + "\nLearning Rate: " + str(learning_rate) + "\nLatent Space Dimensionality: " + str(latent_dimensionality))
+sns.scatterplot(x=pca_fit[:, 0], y=pca_fit[:, 1], hue='z', data=df)
 plt.show()
 
