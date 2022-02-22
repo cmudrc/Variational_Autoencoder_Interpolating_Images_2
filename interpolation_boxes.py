@@ -43,8 +43,8 @@ test_data = np.reshape(testX, (len(testX), image_size, image_size, 1))
 #               back_slash_plus_box, forward_slash_plus_box, hot_dog_box, hamburger_box, x_hamburger_box,
 #               x_hot_dog_box, x_plus_box
 
-box_shape_1 = "basic_box"
-box_shape_2 = "horizontal_vertical_box_split"
+box_shape_1 = "horizontal_vertical_box_split"
+box_shape_2 = "forward_slash_box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
 indices_1 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_1]
@@ -81,7 +81,7 @@ latent_point_2 = latent_point_2[0]
 latent_dimensionality = len(latent_point_1)  # define the dimensionality of the latent space
 ########################################################################################################################
 # Establish the Framework a LINEAR Interpolation
-number_internal = 13  # the number of interpolations that the model will find between two points
+number_internal = 5  # the number of interpolations that the model will find between two points
 num_interp = number_internal + 2  # the number of images to be pictured
 figure = np.zeros((image_size, image_size * num_interp))  # The matrix that will hold the pixel values of the images
 latent_matrix = []
@@ -116,7 +116,8 @@ plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nP
 
 plt.show()
 ########################################################################################################################
-predicted_interps = np.reshape(predicted_interps, (num_interp, image_size**2))
+# Difference between each Point between two images in interpolation
+predicted_interps = np.reshape(predicted_interps, (num_interp, image_size**2))  # flatten the array into a vector
 
 for i in range(num_interp-1):
     difference = predicted_interps[i] - predicted_interps[i+1]
@@ -127,6 +128,36 @@ plt.title("\nLatent Space Dimensionality: " + str(latent_dimensionality))
 plt.show()
 
 ########################################################################################################################
+# Euclidean Distance between two images in interpolation
+for i in range(num_interp-1):
+    diff = predicted_interps[i] - predicted_interps[i + 1]
+    diff_2 = np.power(diff, 2)
+    sqr_diff_2 = pow(np.sum(diff_2), 1/2)
+    plt.scatter(i, sqr_diff_2)
+
+plt.xlabel("Set of Interpolation")
+plt.ylabel("Euclidean Distance between Images")
+plt.title("Euclidean Distance to Evaluate Smoothness of Interpolations\nLatent Space Dimensionality: " + str(latent_dimensionality))
+plt.ylim(0,)
+plt.show()
+########################################################################################################################
+# RMSE
+for i in range(num_interp-1):
+    diff = predicted_interps[i] - predicted_interps[i + 1]
+    diff_2 = np.power(diff, 2)
+    sqr_diff_2 = pow(np.sum(diff_2)/len(predicted_interps[0]), 1/2)
+    plt.scatter(i, sqr_diff_2)
+print(diff)
+print(diff_2)
+print(len(predicted_interps[0]))
+
+plt.xlabel("Set of Interpolation")
+plt.ylabel("RMSE between Images")
+plt.title("RMSE to Evaluate Smoothness of Interpolations\nLatent Space Dimensionality: " + str(latent_dimensionality))
+plt.ylim(0, 1.1)
+plt.show()
+########################################################################################################################
+
 '''
 # Grid Interpolation
 generator_model = decoder_model_boxes
@@ -190,7 +221,7 @@ plt.title("T-SNE of Original Training Data\nPerplexity: " + str(perplexity) + "\
 sns.scatterplot(x=tsne_data[:, 0], y=tsne_data[:, 1], hue='z', data=df)
 plt.show()
 ########################################################################################################################
-# Latent Feature Cluster for Training Data using T-SNE and Predicted Latent Points?
+# Latent Feature Cluster for Training Data using T-SNE and Predicted Latent Points
 z = []
 latent_points = []
 for i in range(len(box_shape_train)):
@@ -219,7 +250,7 @@ sns.scatterplot(x=tsne_data[:, 0], y=tsne_data[:, 1], hue='z', data=df)
 plt.show()
 
 ########################################################################################################################
-# Latent Feature Cluster for Training Data using PCA and Predicted Latent Points?
+# Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
 z = []
 latent_points = []
 for i in range(len(box_shape_train)):
