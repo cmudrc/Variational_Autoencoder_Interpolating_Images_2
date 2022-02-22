@@ -121,6 +121,9 @@ predicted_interps = np.reshape(predicted_interps, (num_interp, image_size**2))
 for i in range(num_interp-1):
     difference = predicted_interps[i] - predicted_interps[i+1]
     plt.boxplot(difference, positions=[i])
+plt.xlabel("Set of Interpolation")
+plt.ylabel("Difference between Interpolation Pixels")
+plt.title("\nLatent Space Dimensionality: " + str(latent_dimensionality))
 plt.show()
 
 ########################################################################################################################
@@ -161,12 +164,13 @@ df['y'] = y
 df['z'] = ["Shape:" + str(k) for k in z]  # Acts as a grouping variable to produce points with different colors
 
 plt.figure(figsize=(8, 6))
+plt.title("Plot of Predicted Latent Points without Dimensionality Reduction")
 sns.scatterplot(x='x', y='y', hue='z', data=df)
 plt.show()
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using T-SNE
 flattened = np.reshape(trainX, (np.shape(trainX)[0], np.shape(trainX)[1]**2))
-perplexity = 7
+perplexity = 30
 learning_rate = 20
 
 pca = PCA(n_components=latent_dimensionality)
@@ -194,7 +198,7 @@ for i in range(len(box_shape_train)):
     op = encoder_model_boxes.predict(np.array([train_data[i]]))
     latent_points.append(op[0])
 latent_points = np.array(latent_points)
-perplexity = 7
+perplexity = 30
 learning_rate = 20
 
 pca = PCA(n_components=2)
