@@ -8,7 +8,8 @@ import seaborn as sns
 import pandas as pd
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+# from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import pacmap
 warnings.filterwarnings('ignore')
 disable_eager_execution()
 ########################################################################################################################
@@ -81,7 +82,7 @@ latent_point_2 = latent_point_2[0]
 latent_dimensionality = len(latent_point_1)  # define the dimensionality of the latent space
 ########################################################################################################################
 # Establish the Framework a LINEAR Interpolation
-number_internal = 5  # the number of interpolations that the model will find between two points
+number_internal = 13  # the number of interpolations that the model will find between two points
 num_interp = number_internal + 2  # the number of images to be pictured
 figure = np.zeros((image_size, image_size * num_interp))  # The matrix that will hold the pixel values of the images
 latent_matrix = []
@@ -147,9 +148,9 @@ for i in range(num_interp-1):
     diff_2 = np.power(diff, 2)
     sqr_diff_2 = pow(np.sum(diff_2)/len(predicted_interps[0]), 1/2)
     plt.scatter(i, sqr_diff_2)
-print(diff)
-print(diff_2)
-print(len(predicted_interps[0]))
+# print(diff)
+# print(diff_2)
+# print(len(predicted_interps[0]))
 
 plt.xlabel("Set of Interpolation")
 plt.ylabel("RMSE between Images")
@@ -258,7 +259,7 @@ for i in range(len(box_shape_train)):
     op = encoder_model_boxes.predict(np.array([train_data[i]]))
     latent_points.append(op[0])
 latent_points = np.array(latent_points)
-
+print(latent_points)
 perplexity = 7
 learning_rate = 20
 
@@ -275,5 +276,29 @@ pca_fit = pca.fit_transform(latent_points)
 plt.figure(figsize=(8, 6))
 plt.title("PCA with Predicted Points \nPerplexity: " + str(perplexity) + "\nLearning Rate: " + str(learning_rate) + "\nLatent Space Dimensionality: " + str(latent_dimensionality))
 sns.scatterplot(x=pca_fit[:, 0], y=pca_fit[:, 1], hue='z', data=df)
+plt.show()
+
+########################################################################################################################
+# Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points
+# loading preprocessed coil_20 dataset
+# you can change it with any dataset that is in the ndarray format, with the shape (N, D)
+# where N is the number of samples and D is the dimension of each sample
+# X = np.load("./data/coil_20.npy", allow_pickle=True)
+
+X = latent_points
+# y = np.load("./data/coil_20_labels.npy", allow_pickle=True)
+
+# initializing the pacmap instance
+# Setting n_neighbors to "None" leads to a default choice shown below in "parameter" section
+embedding = pacmap.PaCMAP(n_dims=2, n_neighbors=None, MN_ratio=0.5, FP_ratio=2.0)
+
+# fit the data (The index of transformed data corresponds to the index of the original data)
+X_transformed = embedding.fit_transform(X, init="pca")
+
+# visualize the embedding
+# fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+# ax.scatter(X_transformed[:, 0], X_transformed[:, 1], cmap="Spectral", c='z', s=0.6)
+sns.scatterplot(x=X_transformed[:, 0], y=X_transformed[:, 1], hue='z', data=df)
+plt.title("PaCMAP with Predicted Points\nLatent Space Dimensionality: " + str(latent_dimensionality))
 plt.show()
 
