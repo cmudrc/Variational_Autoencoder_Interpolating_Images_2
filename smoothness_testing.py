@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-import pacmap
+
 
 image_size = 28
 
@@ -31,12 +31,41 @@ def RMSE(matrix1, matrix2):
     return RMSE
 
 
-print("Test Euclidean ")
 print(euclidean(zeros, ones))
-print(RMSE(zeros, ones))
+print(RMSE(zeros, zeros))
 
 
+def forward_slash_step(image_size):
+    B = []
+    A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
+    for i in range(image_size):
+        for j in range(image_size):
+            if i == (image_size-1)-j:
+                A[i][j] = 1
+                # plt.matshow(A)
+                # plt.show()
+                # the_tuple = tuple(A)
+                # B.append(the_tuple)
+                B.append(A.copy())
 
+    return B
+
+
+tuple_test = forward_slash_step(image_size)
+# print((tuple_test[0] == tuple_test[1]))
+print(np.shape(tuple_test))
+plt.matshow(tuple_test[-1])
+plt.show()
+'''
+predicted_interps = []  # Used to store the predicted interpolations
+# Interpolate the Images and Print out to User
+for latent_point in range(2, num_interp + 2):  # cycles the latent points through the decoder model to create images
+    # generated_image.append((decoder_model_boxes.predict(np.array([latent_matrix[latent_point]]))[0]))
+    generated_image = decoder_model_boxes.predict(np.array([latent_matrix[latent_point - 2]]))[0]  # generates an interpolated image based on the latent point
+    predicted_interps.append(generated_image[:, :, -1])
+    plt.subplot(plot_rows, plot_columns, latent_point), plt.imshow(generated_image[:, :, -1], cmap='gray', vmin=0, vmax=1)
+    plt.axis('off')
+'''
 
 # Euclidean Distance between two images in interpolation
 # for i in range(num_interp-1):
