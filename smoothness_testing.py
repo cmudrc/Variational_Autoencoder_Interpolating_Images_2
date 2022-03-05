@@ -42,20 +42,57 @@ def forward_slash_step(image_size):
         for j in range(image_size):
             if i == (image_size-1)-j:
                 A[i][j] = 1
-                # plt.matshow(A)
-                # plt.show()
-                # the_tuple = tuple(A)
-                # B.append(the_tuple)
-                B.append(A.copy())
-
+                if (i % 2) == 0:
+                    B.append(A.copy())
     return B
 
 
 tuple_test = forward_slash_step(image_size)
 # print((tuple_test[0] == tuple_test[1]))
 print(np.shape(tuple_test))
-plt.matshow(tuple_test[-1])
+plt.matshow(tuple_test[0])
 plt.show()
+num_interp = np.shape(tuple_test)[0]
+plot_rows = 1
+plot_columns = num_interp
+
+for i in range(1, num_interp+1):  # cycles the latent points through the decoder model to create images
+    # generated_image.append((decoder_model_boxes.predict(np.array([latent_matrix[latent_point]]))[0]))
+    # generated_image = decoder_model_boxes.predict(np.array([latent_matrix[latent_point - 2]]))[0]  # generates an interpolated image based on the latent point
+    # predicted_interps.append(generated_image[:, :, -1])
+    plt.subplot(plot_rows, plot_columns, i), plt.imshow(tuple_test[i-1], cmap='gray', vmin=0, vmax=1)
+    plt.title(i)
+    plt.axis('off')
+# plt.title("Figures to Evaluate Smoothness of Interpolations")
+plt.show()
+########################################################################################################################
+# Euclidean Distance between two images in interpolation
+for i in range(num_interp-1):
+    euclidean_distance = euclidean(tuple_test[i], tuple_test[i+1])
+    plt.scatter(i, euclidean_distance)
+
+plt.xlabel("Set of Interpolation")
+plt.ylabel("Euclidean Distance between Images")
+plt.title("Euclidean Distance to Evaluate Smoothness of Interpolations")
+plt.ylim(0,)
+plt.show()
+########################################################################################################################
+# RMSE
+avg_coeff_det = []
+for i in range(num_interp-1):
+    coeff_det = RMSE(tuple_test[i], tuple_test[i + 1])
+    avg_coeff_det.append(coeff_det)
+    plt.scatter(i, coeff_det)
+
+print(np.average(avg_coeff_det))
+
+plt.xlabel("Set of Interpolation")
+plt.ylabel("RMSE between Images")
+plt.title("RMSE to Evaluate Smoothness of Interpolations")
+plt.ylim(0, 1.1)
+plt.show()
+
+
 '''
 predicted_interps = []  # Used to store the predicted interpolations
 # Interpolate the Images and Print out to User
