@@ -8,8 +8,9 @@ import seaborn as sns
 import pandas as pd
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
+from smoothness_testing import euclidean_plot, RMSE_plot
 # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-import pacmap
+import pacmap  # will need to change numba version: pip install numba==0.53
 warnings.filterwarnings('ignore')
 disable_eager_execution()
 ########################################################################################################################
@@ -55,8 +56,8 @@ print(indices_1)
 print(indices_2)
 
 # choose a random index
-number_1 = random.choice(indices_1)
-number_2 = random.choice(indices_2)
+number_1 = indices_1[0]  # random.choice(indices_1)
+number_2 = indices_2[0]  # random.choice(indices_2)
 
 '''
 # Use if not enough test data
@@ -84,7 +85,6 @@ latent_dimensionality = len(latent_point_1)  # define the dimensionality of the 
 # Establish the Framework a LINEAR Interpolation
 number_internal = 13  # the number of interpolations that the model will find between two points
 num_interp = number_internal + 2  # the number of images to be pictured
-figure = np.zeros((image_size, image_size * num_interp))  # The matrix that will hold the pixel values of the images
 latent_matrix = []
 for column in range(latent_dimensionality):
     new_column = np.linspace(latent_point_1[column], latent_point_2[column], num_interp)
@@ -118,6 +118,8 @@ plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nP
 plt.show()
 ########################################################################################################################
 # Difference between each Point between two images in interpolation
+euclidean_plot(predicted_interps, num_interp)
+RMSE_plot(predicted_interps, num_interp)
 predicted_interps = np.reshape(predicted_interps, (num_interp, image_size**2))  # flatten the array into a vector
 
 for i in range(num_interp-1):
@@ -127,7 +129,7 @@ plt.xlabel("Set of Interpolation")
 plt.ylabel("Difference between Interpolation Pixels")
 plt.title("\nLatent Space Dimensionality: " + str(latent_dimensionality))
 plt.show()
-
+'''
 ########################################################################################################################
 # Euclidean Distance between two images in interpolation
 for i in range(num_interp-1):
@@ -141,6 +143,9 @@ plt.ylabel("Euclidean Distance between Images")
 plt.title("Euclidean Distance to Evaluate Smoothness of Interpolations\nLatent Space Dimensionality: " + str(latent_dimensionality))
 plt.ylim(0,)
 plt.show()
+print(predicted_interps[0])
+print(np.shape(predicted_interps[0]))
+
 ########################################################################################################################
 # RMSE
 for i in range(num_interp-1):
@@ -150,7 +155,8 @@ for i in range(num_interp-1):
     plt.scatter(i, sqr_diff_2)
 # print(diff)
 # print(diff_2)
-# print(len(predicted_interps[0]))
+print("PRED")
+print(len(predicted_interps[0]))
 
 plt.xlabel("Set of Interpolation")
 plt.ylabel("RMSE between Images")
@@ -158,6 +164,7 @@ plt.title("RMSE to Evaluate Smoothness of Interpolations\nLatent Space Dimension
 plt.ylim(0, 1.1)
 plt.show()
 ########################################################################################################################
+'''
 
 '''
 # Grid Interpolation
