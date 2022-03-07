@@ -11,6 +11,7 @@ from sklearn.decomposition import PCA
 from smoothness_testing import euclidean_plot, RMSE_plot
 # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import pacmap  # will need to change numba version: pip install numba==0.53
+from Dimensionality_Reduction_Latent_Space import PaCMAP_plot, PCA_plot, PCA_TSNE_plot, TSNE_plot
 warnings.filterwarnings('ignore')
 disable_eager_execution()
 ########################################################################################################################
@@ -45,8 +46,8 @@ test_data = np.reshape(testX, (len(testX), image_size, image_size, 1))
 #               back_slash_plus_box, forward_slash_plus_box, hot_dog_box, hamburger_box, x_hamburger_box,
 #               x_hot_dog_box, x_plus_box
 
-box_shape_1 = "horizontal_vertical_box_split"
-box_shape_2 = "forward_slash_box"
+box_shape_1 = "x_hot_dog_box"
+box_shape_2 = "basic_box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
 indices_1 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_1]
@@ -82,7 +83,7 @@ latent_point_1 = latent_point_1[0]
 latent_point_2 = latent_point_2[0]
 latent_dimensionality = len(latent_point_1)  # define the dimensionality of the latent space
 ########################################################################################################################
-# Establish the Framework a LINEAR Interpolation
+# Establish the Framework for a LINEAR Interpolation
 number_internal = 13  # the number of interpolations that the model will find between two points
 num_interp = number_internal + 2  # the number of images to be pictured
 latent_matrix = []
@@ -113,13 +114,15 @@ for latent_point in range(2, num_interp + 2):  # cycles the latent points throug
 plt.subplot(plot_rows, plot_columns, num_interp + 2), plt.imshow(testX[number_2], cmap='gray', vmin=0, vmax=1)
 plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nPixel Density: " + str(
             box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]))  # + "\nPredicted Latent Point 2: " + str(latent_point_2)
-
-
 plt.show()
+
+
 ########################################################################################################################
-# Difference between each Point between two images in interpolation
-euclidean_plot(predicted_interps, num_interp)
+# Plotting the Euclidean and RMSE Values between each step in the interpolation
+euclidean_plot(predicted_interps, num_interp)  # will calculate and plot the euclidean distances between each step in the interpolation
 RMSE_plot(predicted_interps, num_interp)
+
+# Difference between each Point between two images in interpolation
 predicted_interps = np.reshape(predicted_interps, (num_interp, image_size**2))  # flatten the array into a vector
 
 for i in range(num_interp-1):
@@ -129,43 +132,9 @@ plt.xlabel("Set of Interpolation")
 plt.ylabel("Difference between Interpolation Pixels")
 plt.title("\nLatent Space Dimensionality: " + str(latent_dimensionality))
 plt.show()
-'''
-########################################################################################################################
-# Euclidean Distance between two images in interpolation
-for i in range(num_interp-1):
-    diff = predicted_interps[i] - predicted_interps[i + 1]
-    diff_2 = np.power(diff, 2)
-    sqr_diff_2 = pow(np.sum(diff_2), 1/2)
-    plt.scatter(i, sqr_diff_2)
-
-plt.xlabel("Set of Interpolation")
-plt.ylabel("Euclidean Distance between Images")
-plt.title("Euclidean Distance to Evaluate Smoothness of Interpolations\nLatent Space Dimensionality: " + str(latent_dimensionality))
-plt.ylim(0,)
-plt.show()
-print(predicted_interps[0])
-print(np.shape(predicted_interps[0]))
 
 ########################################################################################################################
-# RMSE
-for i in range(num_interp-1):
-    diff = predicted_interps[i] - predicted_interps[i + 1]
-    diff_2 = np.power(diff, 2)
-    sqr_diff_2 = pow(np.sum(diff_2)/len(predicted_interps[0]), 1/2)
-    plt.scatter(i, sqr_diff_2)
-# print(diff)
-# print(diff_2)
-print("PRED")
-print(len(predicted_interps[0]))
-
-plt.xlabel("Set of Interpolation")
-plt.ylabel("RMSE between Images")
-plt.title("RMSE to Evaluate Smoothness of Interpolations\nLatent Space Dimensionality: " + str(latent_dimensionality))
-plt.ylim(0, 1.1)
-plt.show()
-########################################################################################################################
-'''
-
+# Use to make an interpolation grid between 4 images
 '''
 # Grid Interpolation
 generator_model = decoder_model_boxes
@@ -191,12 +160,15 @@ train_data = np.reshape(trainX, (len(trainX), image_size, image_size, 1))
 x = []
 y = []
 z = []
+latent_points = []
 for i in range(len(box_shape_train)):
     z.append(box_shape_train[i])
     op = encoder_model_boxes.predict(np.array([train_data[i]]))
+    latent_points.append(op[0])
     x.append(op[0][0])
     y.append(op[0][1])
 
+latent_points = np.array(latent_points)
 df = pd.DataFrame()
 df['x'] = x
 df['y'] = y
@@ -228,84 +200,24 @@ plt.figure(figsize=(8, 6))
 plt.title("T-SNE of Original Training Data\nPerplexity: " + str(perplexity) + "\nLearning Rate: " + str(learning_rate) + "\nLatent Space Dimensionality: " + str(latent_dimensionality))
 sns.scatterplot(x=tsne_data[:, 0], y=tsne_data[:, 1], hue='z', data=df)
 plt.show()
+
+
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using T-SNE and Predicted Latent Points
-z = []
-latent_points = []
-for i in range(len(box_shape_train)):
-    z.append(box_shape_train[i])
-    op = encoder_model_boxes.predict(np.array([train_data[i]]))
-    latent_points.append(op[0])
-latent_points = np.array(latent_points)
-perplexity = 30
-learning_rate = 20
+TSNE_plot(latent_points, box_shape_train, latent_dimensionality)
 
-pca = PCA(n_components=2)
-pca_fit = pca.fit_transform(latent_points)
-model = TSNE(n_components=2, random_state=0,  perplexity=perplexity, learning_rate=learning_rate)  # Perplexity(5-50) | learning_rate(10-1000)
-# configuring the parameters
-# the number of components = dimension of the embedded space
-# default perplexity = 30 " Perplexity balances the attention t-SNE gives to local and global aspects of the data.
-# It is roughly a guess of the number of close neighbors each point has. ..a denser dataset ... requires higher perplexity value"
-# default learning rate = 200 "If the learning rate is too high, the data may look like a ‘ball’ with any point
-# approximately equidistant from its nearest neighbours. If the learning rate is too low,
-# most points may look compressed in a dense cloud with few outliers."
-tsne_data = model.fit_transform(pca_fit) # When there are more data points, trainX should be the first couple hundred points so TSNE doesn't take too long
-
-plt.figure(figsize=(8, 6))
-plt.title("T-SNE with Predicted Points \nPerplexity: " + str(perplexity) + "\nLearning Rate: " + str(learning_rate) + "\nLatent Space Dimensionality: " + str(latent_dimensionality))
-sns.scatterplot(x=tsne_data[:, 0], y=tsne_data[:, 1], hue='z', data=df)
-plt.show()
+########################################################################################################################
+# Latent Feature Cluster for Training Data using PCA reduced T-SNE and Predicted Latent Points
+PCA_TSNE_plot(latent_points, box_shape_train, latent_dimensionality)
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
-z = []
-latent_points = []
-for i in range(len(box_shape_train)):
-    z.append(box_shape_train[i])
-    op = encoder_model_boxes.predict(np.array([train_data[i]]))
-    latent_points.append(op[0])
-latent_points = np.array(latent_points)
-print(latent_points)
-perplexity = 7
-learning_rate = 20
-
-pca = PCA(n_components=2)
-pca_fit = pca.fit_transform(latent_points)
-# configuring the parameters
-# the number of components = dimension of the embedded space
-# default perplexity = 30 " Perplexity balances the attention t-SNE gives to local and global aspects of the data.
-# It is roughly a guess of the number of close neighbors each point has. ..a denser dataset ... requires higher perplexity value"
-# default learning rate = 200 "If the learning rate is too high, the data may look like a ‘ball’ with any point
-# approximately equidistant from its nearest neighbours. If the learning rate is too low,
-# most points may look compressed in a dense cloud with few outliers."
-
-plt.figure(figsize=(8, 6))
-plt.title("PCA with Predicted Points \nPerplexity: " + str(perplexity) + "\nLearning Rate: " + str(learning_rate) + "\nLatent Space Dimensionality: " + str(latent_dimensionality))
-sns.scatterplot(x=pca_fit[:, 0], y=pca_fit[:, 1], hue='z', data=df)
-plt.show()
+PCA_plot(latent_points, box_shape_train, latent_dimensionality)
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points
-# loading preprocessed coil_20 dataset
-# you can change it with any dataset that is in the ndarray format, with the shape (N, D)
-# where N is the number of samples and D is the dimension of each sample
-# X = np.load("./data/coil_20.npy", allow_pickle=True)
+PaCMAP_plot(latent_points, box_shape_train, latent_dimensionality)
 
-X = latent_points
-# y = np.load("./data/coil_20_labels.npy", allow_pickle=True)
 
-# initializing the pacmap instance
-# Setting n_neighbors to "None" leads to a default choice shown below in "parameter" section
-embedding = pacmap.PaCMAP(n_dims=2, n_neighbors=None, MN_ratio=0.5, FP_ratio=2.0)
 
-# fit the data (The index of transformed data corresponds to the index of the original data)
-X_transformed = embedding.fit_transform(X, init="pca")
-
-# visualize the embedding
-# fig, ax = plt.subplots(1, 1, figsize=(6, 6))
-# ax.scatter(X_transformed[:, 0], X_transformed[:, 1], cmap="Spectral", c='z', s=0.6)
-sns.scatterplot(x=X_transformed[:, 0], y=X_transformed[:, 1], hue='z', data=df)
-plt.title("PaCMAP with Predicted Points\nLatent Space Dimensionality: " + str(latent_dimensionality))
-plt.show()
 
