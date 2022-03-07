@@ -154,12 +154,13 @@ plt.imshow(figure, cmap='gray', extent=[3, -3, 3, -3])
 plt.show()
 '''
 ########################################################################################################################
-# Latent Feature Cluster for Training Data (Only works for 2-dimensions)
+# Preparing the Data to be Plotted
 trainX = box_matrix_train
 train_data = np.reshape(trainX, (len(trainX), image_size, image_size, 1))
 x = []
 y = []
 z = []
+avg_density = []  # An integer label that is based on the average density of the matrix
 latent_points = []
 for i in range(len(box_shape_train)):
     z.append(box_shape_train[i])
@@ -167,7 +168,11 @@ for i in range(len(box_shape_train)):
     latent_points.append(op[0])
     x.append(op[0][0])
     y.append(op[0][1])
-
+    avg_density.append(np.average(box_matrix_train[i]))
+print(avg_density[0])
+print(np.shape(avg_density))
+########################################################################################################################
+# Latent Feature Cluster for Training Data (Only works for 2-dimensions)
 latent_points = np.array(latent_points)
 df = pd.DataFrame()
 df['x'] = x
@@ -184,8 +189,8 @@ flattened = np.reshape(trainX, (np.shape(trainX)[0], np.shape(trainX)[1]**2))
 perplexity = 30
 learning_rate = 20
 
-pca = PCA(n_components=latent_dimensionality)
-flattened = pca.fit_transform(flattened)
+# pca = PCA(n_components=latent_dimensionality)  # PCA can be used to assist with reducing dimensionality in cases where the latent space is large
+# flattened = pca.fit_transform(flattened)
 model = TSNE(n_components=2, random_state=0,  perplexity=perplexity, learning_rate=learning_rate)  # Perplexity(5-50) | learning_rate(10-1000)
 # configuring the parameters
 # the number of components = dimension of the embedded space
@@ -217,7 +222,7 @@ PCA_plot(latent_points, box_shape_train, latent_dimensionality)
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points
 PaCMAP_plot(latent_points, box_shape_train, latent_dimensionality)
-
+PaCMAP_plot(latent_points, avg_density, latent_dimensionality)
 
 
 
