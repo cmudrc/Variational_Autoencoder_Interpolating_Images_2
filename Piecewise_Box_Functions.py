@@ -32,7 +32,7 @@ def forward_slash_array(image_size):
 
 
 def hot_dog_array(image_size):
-    # Places pixels across the vertical axis to split the box
+    # Places pixels down the vertical axis to split the box
     A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
     for i in range(image_size):
         for j in range(image_size):
