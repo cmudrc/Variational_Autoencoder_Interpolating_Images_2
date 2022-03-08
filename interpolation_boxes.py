@@ -7,6 +7,7 @@ from tensorflow.python.framework.ops import disable_eager_execution
 import seaborn as sns
 import pandas as pd
 from sklearn.manifold import TSNE
+import gradio as gr
 from sklearn.decomposition import PCA
 from smoothness_testing import euclidean_plot, RMSE_plot
 # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
@@ -42,9 +43,9 @@ test_data = np.reshape(testX, (len(testX), image_size, image_size, 1))
 # Select Latent Points to Interpolate Between
 # USE ONCE TEST DATA IS LARGE ENOUGH
 # Selecting a particular set of boxes for interpolation
-# Select from : basic_box, diagonal_box_split, horizontal_vertical_box_split, back_slash_box, forward_slash_box,
-#               back_slash_plus_box, forward_slash_plus_box, hot_dog_box, hamburger_box, x_hamburger_box,
-#               x_hot_dog_box, x_plus_box
+shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "back_slash_box", "forward_slash_box",
+              "back_slash_plus_box", "forward_slash_plus_box", "hot_dog_box", "hamburger_box", "x_hamburger_box",
+              "x_hot_dog_box", "x_plus_box")
 
 box_shape_1 = "x_hot_dog_box"
 box_shape_2 = "basic_box"
@@ -224,5 +225,17 @@ PCA_plot(latent_points, box_shape_train, latent_dimensionality)
 PaCMAP_plot(latent_points, box_shape_train, latent_dimensionality)
 PaCMAP_plot(latent_points, avg_density, latent_dimensionality)
 
+'''
+def shape_select(number):
+    return "This is your" + str(number)
 
 
+iface = gr.Interface(
+    fn=shape_select,
+    inputs=gr.inputs.Dropdown((1, 2, 3), type="value", default=None, label=None, optional=False),
+    outputs="text",
+    interpretation=None,
+)
+
+iface.launch(share=True)
+'''
