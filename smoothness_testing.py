@@ -2,6 +2,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+from matplotlib.patches import FancyArrowPatch
 import tensorflow
 import warnings
 from tensorflow.python.framework.ops import disable_eager_execution
@@ -106,6 +107,104 @@ def hot_dog_array_step(image_size, pixel_step_change):
     return B
 
 
+def hot_dog_array_step_density(image_size, pixel_step_change):
+    # Places pixels down the vertical axis to split the box
+    B = []
+    A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
+    for i in range(image_size):
+        for j in range(image_size):
+            if j == math.floor((image_size - 1) / 2) or j == math.ceil((image_size - 1) / 2):
+                A[i][j] = 1 * (0.9 ** i)
+                if (i % pixel_step_change or j % pixel_step_change) == 0:
+                    B.append(A.copy())
+    return B
+
+
+########################################################################################################################
+gradient_test = hot_dog_array_step_density(image_size, pixel_step_change)[-1]  # The function used to create the steps
+plt.subplot(1, 4, 1), plt.imshow(gradient_test, cmap='gray', vmin=0, vmax=1)
+plt.colorbar()
+
+roberts_cross_x = np.array([0, 1, -1, 0])
+roberts_cross_y = np.array([1, 0, 0, -1])
+
+G_flat = gradient_test.flatten(order='C')
+print(np.shape(G_flat))
+G_x = np.convolve(G_flat.copy(), roberts_cross_x, 'same')
+G_y = np.convolve(G_flat.copy(), roberts_cross_y, 'same')
+print(G_x)
+print(np.shape(G_x))
+
+G_x = np.reshape(G_x, (image_size, image_size))
+G_y = np.reshape(G_y, (image_size, image_size))
+print(G_x)
+print(np.shape(G_x))
+
+gradient = np.gradient(gradient_test)
+plt.subplot(1, 4, 2), plt.imshow(G_x, cmap='gray') # , vmin=0, vmax=1
+plt.title("Gradient in x Direction")
+plt.colorbar()
+
+plt.subplot(1, 4, 3), plt.imshow(G_y, cmap='gray') # , vmin=0, vmax=1
+plt.title("Gradient in y Direction")
+plt.colorbar()
+
+print(gradient[0])
+print(np.shape(gradient[0]))
+
+print(gradient[1])
+print(np.shape(gradient[1]))
+
+
+x = np.arange(0, 28, 1)
+y = np.arange(0, 28, 1)
+x, y = np.meshgrid(x, y)
+
+norm = np.linalg.norm(np.array((G_x, G_y)), axis=0)
+unit_x = gradient[0] / norm
+unit_y = gradient[1] / norm
+
+#
+plt.subplot(1, 4, 4), plt.quiver(x, y, unit_x, unit_y, units='xy', scale=0.5, color='gray')
+plt.gca().set_aspect('equal')
+plt.show()
+
+
+
+
+
+########################################################################################################################
+feature_x = np.arange(-50, 50, 2)
+feature_y = np.arange(-50, 50, 2)
+
+x, y = np.meshgrid(feature_x, feature_y)
+# z = 0.5*(y-x)**2 + 0.5*(1-x)**2
+u = 2*x - y - 1
+v = y - x
+
+# Normalize all gradients to focus on the direction not the magnitude
+norm = np.linalg.norm(np.array((u, v)), axis=0)
+u = u / norm
+v = v / norm
+
+fig, ax = plt.subplots(1, 1)
+ax.set_aspect(1)
+# ax.plot(feature_x, feature_y, c='k')
+ax.quiver(x, y, u, v, units='xy', scale=0.5, color='gray')
+# ax.contour(x, y, z, 10, cmap='jet')
+
+# arrow = FancyArrowPatch((35, 35), (35+34*0.2, 35+0), arrowstyle='simple',
+#                         color='r', mutation_scale=10)
+# ax.add_patch(arrow)  # NOTE: this gradient is scaled to make it better visible
+plt.show()
+# def gradient(matrix):
+#
+#
+# def gradient_plot(gradient_array):
+
+
+########################################################################################################################
+'''
 # USE TO PLOT SMOOTHNESS TESTS
 tuple_test = forward_slash_step_density(image_size, pixel_step_change)  # The function used to create the steps
 # tuple_test = hot_dog_array_step(image_size, pixel_step_change)
@@ -128,3 +227,4 @@ plt.show()
 
 RMSE_plot(tuple_test, num_interp)
 euclidean_plot(tuple_test, num_interp)
+'''
