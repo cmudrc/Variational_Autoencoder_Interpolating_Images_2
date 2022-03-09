@@ -6,7 +6,7 @@ from scipy import ndimage
 import scipy
 from scipy import signal
 from matplotlib.patches import FancyArrowPatch
-import tensorflow
+import tensorflow as tf
 import warnings
 from tensorflow.python.framework.ops import disable_eager_execution
 import seaborn as sns
@@ -130,58 +130,55 @@ plt.colorbar()
 
 # roberts_cross_x = np.array([0, 1, -1, 0])
 # roberts_cross_y = np.array([1, 0, 0, -1])
-roberts_cross_x = np.array( [[ 0, 1 ], [ -1, 0 ]] )
-roberts_cross_y = np.array( [[1, 0 ], [0,-1 ]] )
-
-G_flat = gradient_test.flatten(order='C')
-print(np.shape(G_flat))
+# G_flat = gradient_test.flatten(order='C')
+# print(np.shape(G_flat))
 # G_x = np.convolve(G_flat.copy(), roberts_cross_x, 'same')
 # G_y = np.convolve(G_flat.copy(), roberts_cross_y, 'same')
 
-# G_x = scipy.signal.convolve2d(gradient_test, roberts_cross_x, 'same')
-# G_y = scipy.signal.convolve2d(gradient_test, roberts_cross_y, 'same')
+roberts_cross_x = np.array( [[1, 0 ], [0,-1 ]] )
+roberts_cross_y = np.array( [[ 0, 1 ], [ -1, 0 ]] )
 
-G_x = ndimage.convolve(gradient_test, roberts_cross_x)
-G_y = ndimage.convolve(gradient_test, roberts_cross_y)
+#gradient_x = np.array([[-1, 1], [-1, 1]])
+#gradient_y = np.array([[1, 1], [-1, -1]])
+
+G_x = scipy.signal.convolve2d(gradient_test.copy(), roberts_cross_x, 'valid', 'symm')
+G_y = scipy.signal.convolve2d(gradient_test.copy(), roberts_cross_y, 'valid')
+
+# G_x = ndimage.convolve(gradient_test, roberts_cross_x) #Working, but produces image of same size
+# G_y = ndimage.convolve(gradient_test, roberts_cross_y) #Working, but produces image of same size
 
 print(G_x)
 print(np.shape(G_x))
+gradient_size = len(G_x)
 
-# G_x = np.reshape(G_x, (image_size, image_size))
-# G_y = np.reshape(G_y, (image_size, image_size))
-# print(G_x)
-# print(np.shape(G_x))
+gradient_zeros = np.zeros((gradient_size, gradient_size))
+gradient_ones = np.ones((gradient_size, gradient_size))
 
-# gradient = np.gradient(gradient_test)
-plt.subplot(1, 4, 2), plt.imshow(G_x, cmap='gray') # , vmin=0, vmax=1
+x = np.arange(0, gradient_size, 1)
+y = np.arange(0, gradient_size, 1)
+x, y = np.meshgrid(x, y)
+
+gradient_magnitude = np.sqrt(np.square(G_x) + np.square(G_y))
+
+normx = np.linalg.norm(G_x.copy())
+normy = np.linalg.norm(G_y.copy())
+print(normx)
+unit_x = G_x / normx
+unit_y = G_y / normy
+
+#  plt.imshow(G_x, cmap='gray')
+plt.subplot(1, 4, 2), plt.quiver(x, y, G_x, gradient_zeros, units='xy', scale=1, color='red'), plt.imshow(gradient_ones, origin='upper', cmap='gray', vmin=0, vmax=1)
 plt.title("Gradient in x Direction")
 plt.colorbar()
 
-plt.subplot(1, 4, 3), plt.imshow(G_y, cmap='gray') # , vmin=0, vmax=1
+# plt.imshow(G_y, cmap='gray') # , vmin=0, vmax=1
+plt.subplot(1, 4, 3), plt.quiver(x, y, gradient_zeros, G_y, units='xy', scale=1, color='red'), plt.imshow(gradient_ones, origin='upper', cmap='gray', vmin=0, vmax=1)
 plt.title("Gradient in y Direction")
 plt.colorbar()
 
-print(G_x)
-print(np.shape(G_x))
-
-gradient_magnitude = np.sqrt(np.square(G_x) + np.square(G_x))
-
-x = np.arange(0, 28, 1)
-y = np.arange(0, 28, 1)
-x, y = np.meshgrid(x, y)
-
-norm = np.linalg.norm(np.array((G_x, G_y)), axis=0)
-unit_x = G_x / norm
-unit_y = G_y / norm
-
-#
-plt.subplot(1, 4, 4), plt.quiver(x, y, unit_x, unit_y, units='xy', scale=0.5, color='gray'), plt.imshow(gradient_magnitude, origin='upper', cmap='RdYlBu')
+plt.subplot(1, 4, 4), plt.quiver(x, y, G_x, G_y, units='xy', scale=1, color='red'), plt.imshow(gradient_ones, origin='upper', cmap='gray', vmin=0, vmax=1)
 plt.gca().set_aspect('equal')
 plt.show()
-
-
-
-
 
 ########################################################################################################################
 feature_x = np.arange(-50, 50, 2)
