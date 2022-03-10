@@ -17,7 +17,7 @@ from sklearn.decomposition import PCA
 
 
 image_size = 28
-pixel_step_change = 1  # the number of pixels that will be added in between each step
+pixel_step_change = 2  # the number of pixels that will be added in between each step
 
 zeros = np.zeros((image_size, image_size))
 ones = np.ones((image_size, image_size))
@@ -123,32 +123,44 @@ def hot_dog_array_step_density(image_size, pixel_step_change):
     return B
 
 
+def basic_box_array_step_gradient(image_size, pixel_step_change):
+    B = []
+    A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
+    # Creates the outside edges of the box
+    for i in range(image_size):
+        for j in range(image_size):
+            if i == 0 or j == 0 or i == image_size - 1 or j == image_size - 1:
+                A[i][j] = 1 * (0.9 ** i)
+                if (i % pixel_step_change or j % pixel_step_change) == 0:
+                    B.append(A.copy())
+    return B
+
+
 ########################################################################################################################
 gradient_test = hot_dog_array_step_density(image_size, pixel_step_change)[-1]  # The function used to create the steps
+# gradient_test = basic_box_array_step_gradient(image_size, pixel_step_change) [-1]
 plt.subplot(1, 4, 1), plt.imshow(gradient_test, cmap='gray', vmin=0, vmax=1)
 plt.colorbar()
 
-# roberts_cross_x = np.array([0, 1, -1, 0])
-# roberts_cross_y = np.array([1, 0, 0, -1])
-# G_flat = gradient_test.flatten(order='C')
-# print(np.shape(G_flat))
-# G_x = np.convolve(G_flat.copy(), roberts_cross_x, 'same')
-# G_y = np.convolve(G_flat.copy(), roberts_cross_y, 'same')
+roberts_cross_x = np.array([[1, 0], [0, -1]])  # Uses diagonally adjacent pixel to compute the gradient, so it will not necessarily come out correct
+roberts_cross_y = np.array([[0, 1], [-1, 0]])
 
-roberts_cross_x = np.array( [[1, 0 ], [0,-1 ]] )
-roberts_cross_y = np.array( [[ 0, 1 ], [ -1, 0 ]] )
+gradient_x = np.array([[-1, 1], [-1, 1]])
+gradient_y = np.array([[1, 1], [-1, -1]])
 
-#gradient_x = np.array([[-1, 1], [-1, 1]])
-#gradient_y = np.array([[1, 1], [-1, -1]])
+perwitt_x = np.array([[1, 0, -1], [1, 0, -1], [1, 0, -1]])
+perwitt_y = np.array([[1, 1, 1], [0, 0, 0], [-1, -1, -1]])
+G_x = scipy.signal.convolve2d(gradient_test.copy(), perwitt_x, 'valid')
+G_y = scipy.signal.convolve2d(gradient_test.copy(), perwitt_y, 'valid')
 
-G_x = scipy.signal.convolve2d(gradient_test.copy(), roberts_cross_x, 'valid', 'symm')
-G_y = scipy.signal.convolve2d(gradient_test.copy(), roberts_cross_y, 'valid')
-
-# G_x = ndimage.convolve(gradient_test, roberts_cross_x) #Working, but produces image of same size
-# G_y = ndimage.convolve(gradient_test, roberts_cross_y) #Working, but produces image of same size
+# G_x = ndimage.convolve(gradient_test, gradient_x) #Working, but produces image of same size
+# G_y = ndimage.convolve(gradient_test, gradient_y) #Working, but produces image of same size
 
 print(G_x)
 print(np.shape(G_x))
+print(G_y)
+print(np.shape(G_y))
+
 gradient_size = len(G_x)
 
 gradient_zeros = np.zeros((gradient_size, gradient_size))
@@ -162,7 +174,6 @@ gradient_magnitude = np.sqrt(np.square(G_x) + np.square(G_y))
 
 normx = np.linalg.norm(G_x.copy())
 normy = np.linalg.norm(G_y.copy())
-print(normx)
 unit_x = G_x / normx
 unit_y = G_y / normy
 
@@ -179,6 +190,7 @@ plt.colorbar()
 plt.subplot(1, 4, 4), plt.quiver(x, y, G_x, G_y, units='xy', scale=1, color='red'), plt.imshow(gradient_ones, origin='upper', cmap='gray', vmin=0, vmax=1)
 plt.gca().set_aspect('equal')
 plt.show()
+
 
 ########################################################################################################################
 feature_x = np.arange(-50, 50, 2)
@@ -212,8 +224,8 @@ plt.show()
 
 ########################################################################################################################
 '''
-# USE TO PLOT SMOOTHNESS TESTS
-tuple_test = forward_slash_step_density(image_size, pixel_step_change)  # The function used to create the steps
+# DEBUG USE TO PLOT SMOOTHNESS TESTS
+tuple_test = basic_box_array_step_gradient(image_size, pixel_step_change)  # The function used to create the steps
 # tuple_test = hot_dog_array_step(image_size, pixel_step_change)
 # print((tuple_test[0] == tuple_test[1]))
 print(np.shape(tuple_test))
