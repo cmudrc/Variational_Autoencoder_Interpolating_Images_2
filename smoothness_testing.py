@@ -2,18 +2,9 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-from scipy import ndimage
 import scipy
 from scipy import signal
-from matplotlib.patches import FancyArrowPatch
-import tensorflow as tf
-import warnings
-from tensorflow.python.framework.ops import disable_eager_execution
-import seaborn as sns
-import pandas as pd
-from sklearn.manifold import TSNE
-from sklearn.decomposition import PCA
-# from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+
 
 
 image_size = 28
@@ -137,21 +128,27 @@ def basic_box_array_step_gradient(image_size, pixel_step_change):
 
 
 ########################################################################################################################
-gradient_test = hot_dog_array_step_density(image_size, pixel_step_change)[-1]  # The function used to create the steps
-# gradient_test = basic_box_array_step_gradient(image_size, pixel_step_change) [-1]
+# gradient_test = hot_dog_array_step_density(image_size, pixel_step_change)[-1]  # The function used to create the steps
+gradient_test = basic_box_array_step_gradient(image_size, pixel_step_change) [-1]
+
+'''
 plt.subplot(1, 4, 1), plt.imshow(gradient_test, cmap='gray', vmin=0, vmax=1)
 plt.colorbar()
 
 roberts_cross_x = np.array([[1, 0], [0, -1]])  # Uses diagonally adjacent pixel to compute the gradient, so it will not necessarily come out correct
 roberts_cross_y = np.array([[0, 1], [-1, 0]])
 
-gradient_x = np.array([[-1, 1], [-1, 1]])
-gradient_y = np.array([[1, 1], [-1, -1]])
+gradient_x = np.array([[1, -1], [1, -1]])
+gradient_y = np.array([[-1, -1], [1, 1]])
 
 perwitt_x = np.array([[1, 0, -1], [1, 0, -1], [1, 0, -1]])
-perwitt_y = np.array([[1, 1, 1], [0, 0, 0], [-1, -1, -1]])
-G_x = scipy.signal.convolve2d(gradient_test.copy(), perwitt_x, 'valid')
-G_y = scipy.signal.convolve2d(gradient_test.copy(), perwitt_y, 'valid')
+perwitt_y = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]])
+
+sobel_x = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
+sobel_y = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
+
+G_x = scipy.signal.convolve2d(gradient_test.copy(), sobel_x, 'valid')
+G_y = scipy.signal.convolve2d(gradient_test.copy(), sobel_y, 'valid')
 
 # G_x = ndimage.convolve(gradient_test, gradient_x) #Working, but produces image of same size
 # G_y = ndimage.convolve(gradient_test, gradient_y) #Working, but produces image of same size
@@ -190,39 +187,86 @@ plt.colorbar()
 plt.subplot(1, 4, 4), plt.quiver(x, y, G_x, G_y, units='xy', scale=1, color='red'), plt.imshow(gradient_ones, origin='upper', cmap='gray', vmin=0, vmax=1)
 plt.gca().set_aspect('equal')
 plt.show()
+'''
 
 
 ########################################################################################################################
-feature_x = np.arange(-50, 50, 2)
-feature_y = np.arange(-50, 50, 2)
+def gradient(array, filter="gradient"):
+    plt.subplot(1, 4, 1), plt.imshow(array, cmap='gray', vmin=0, vmax=1)
+    plt.colorbar()
 
-x, y = np.meshgrid(feature_x, feature_y)
-# z = 0.5*(y-x)**2 + 0.5*(1-x)**2
-u = 2*x - y - 1
-v = y - x
+    roberts_cross_x = np.array([[1, 0], [0,
+                                         -1]])  # Uses diagonally adjacent pixel to compute the gradient, so it will not necessarily come out correct
+    roberts_cross_y = np.array([[0, 1], [-1, 0]])
 
-# Normalize all gradients to focus on the direction not the magnitude
-norm = np.linalg.norm(np.array((u, v)), axis=0)
-u = u / norm
-v = v / norm
+    gradient_x = np.array([[1, -1], [1, -1]])
+    gradient_y = np.array([[-1, -1], [1, 1]])
 
-fig, ax = plt.subplots(1, 1)
-ax.set_aspect(1)
-# ax.plot(feature_x, feature_y, c='k')
-ax.quiver(x, y, u, v, units='xy', scale=0.5, color='gray')
-# ax.contour(x, y, z, 10, cmap='jet')
+    perwitt_x = np.array([[1, 0, -1], [1, 0, -1], [1, 0, -1]])
+    perwitt_y = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]])
 
-# arrow = FancyArrowPatch((35, 35), (35+34*0.2, 35+0), arrowstyle='simple',
-#                         color='r', mutation_scale=10)
-# ax.add_patch(arrow)  # NOTE: this gradient is scaled to make it better visible
-plt.show()
-# def gradient(matrix):
-#
-#
-# def gradient_plot(gradient_array):
+    sobel_x = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
+    sobel_y = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
+
+    if filter == "roberts":
+        filter_x = roberts_cross_x
+        filter_y = roberts_cross_y
+    elif filter == "perwitt":
+        filter_x = perwitt_x
+        filter_y = perwitt_y
+    elif filter == "sobel":
+        filter_x = sobel_x
+        filter_y = sobel_y
+    else:
+        filter_x = gradient_x
+        filter_y = gradient_y
+
+    G_x = scipy.signal.convolve2d(gradient_test.copy(), filter_x, 'valid')
+    G_y = scipy.signal.convolve2d(gradient_test.copy(), filter_y, 'valid')
+
+    # G_x = ndimage.convolve(gradient_test, gradient_x) #Working, but produces image of same size
+    # G_y = ndimage.convolve(gradient_test, gradient_y) #Working, but produces image of same size
+
+    gradient_size = len(G_x)
+
+    gradient_zeros = np.zeros((gradient_size, gradient_size))
+    gradient_ones = np.ones((gradient_size, gradient_size))
+
+    x = np.arange(0, gradient_size, 1)
+    y = np.arange(0, gradient_size, 1)
+    x, y = np.meshgrid(x, y)
+
+    gradient_magnitude = np.sqrt(np.square(G_x) + np.square(G_y))
+
+    # normx = np.linalg.norm(G_x.copy())  # Used to show an even distribution of arrows
+    # normy = np.linalg.norm(G_y.copy())
+    # unit_x = G_x / normx
+    # unit_y = G_y / normy
+
+    plt.subplot(1, 4, 2), plt.quiver(x, y, G_x, gradient_zeros, units='xy', scale=1, color='red'), plt.imshow(
+        gradient_ones, origin='upper', cmap='gray', vmin=0, vmax=1)
+    plt.title("Gradient in x Direction")
+    plt.colorbar()
+
+    plt.subplot(1, 4, 3), plt.quiver(x, y, gradient_zeros, G_y, units='xy', scale=1, color='red'), plt.imshow(
+        gradient_ones, origin='upper', cmap='gray', vmin=0, vmax=1)
+    plt.title("Gradient in y Direction")
+    plt.colorbar()
+
+    plt.subplot(1, 4, 4), plt.quiver(x, y, G_x, G_y, units='xy', scale=1, color='red'), plt.imshow(gradient_ones,
+                                                                                                   origin='upper',
+                                                                                                   cmap='gray', vmin=0,
+                                                                                                   vmax=1)
+    plt.title("Gradients Calculated with " + filter + " filter")
+    plt.gca().set_aspect('equal')
+    plt.show()
+
+    return G_x, G_y
 
 
-########################################################################################################################
+gradient(gradient_test)
+
+
 '''
 # DEBUG USE TO PLOT SMOOTHNESS TESTS
 tuple_test = basic_box_array_step_gradient(image_size, pixel_step_change)  # The function used to create the steps
