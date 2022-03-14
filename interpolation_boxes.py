@@ -12,7 +12,7 @@ from sklearn.decomposition import PCA
 from smoothness_testing import euclidean_plot, RMSE_plot
 # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import pacmap  # will need to change numba version: pip install numba==0.53
-from Dimensionality_Reduction_Latent_Space import PaCMAP_plot, PCA_plot, PCA_TSNE_plot, TSNE_plot
+from Dimensionality_Reduction_Latent_Space import PaCMAP_plot, PCA_plot, PCA_TSNE_plot, TSNE_plot, plot_dimensionality_reduction
 warnings.filterwarnings('ignore')
 disable_eager_execution()
 ########################################################################################################################
@@ -210,20 +210,24 @@ plt.show()
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using T-SNE and Predicted Latent Points
-TSNE_plot(latent_points, box_shape_train, latent_dimensionality)
+x, y, title = TSNE_plot(latent_points, latent_dimensionality)
+plot_dimensionality_reduction(x, y, box_shape_train, title)
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA reduced T-SNE and Predicted Latent Points
-PCA_TSNE_plot(latent_points, box_shape_train, latent_dimensionality)
+x, y, title = PCA_TSNE_plot(latent_points, latent_dimensionality)
+plot_dimensionality_reduction(x, y, box_shape_train, title)
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
-PCA_plot(latent_points, box_shape_train, latent_dimensionality)
+x, y, title = PCA_plot(latent_points, latent_dimensionality)
+plot_dimensionality_reduction(x, y, box_shape_train, title)
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points
-PaCMAP_plot(latent_points, box_shape_train, latent_dimensionality)
-PaCMAP_plot(latent_points, avg_density, latent_dimensionality)
+x, y, title = PaCMAP_plot(latent_points, latent_dimensionality)
+plot_dimensionality_reduction(x, y, box_shape_train, title)
+plot_dimensionality_reduction(x, y, avg_density, title)
 
 '''
 def shape_select(number):
