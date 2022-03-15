@@ -93,7 +93,7 @@ for column in range(latent_dimensionality):
     latent_matrix.append(new_column)
 latent_matrix = np.array(latent_matrix).T  # Transposes the matrix so that each row can be easily indexed
 ########################################################################################################################
-# Plotting the Interpolation
+# Plotting the Interpolation in 2D
 plot_rows = 2
 plot_columns = num_interp + 2
 
@@ -116,7 +116,23 @@ plt.subplot(plot_rows, plot_columns, num_interp + 2), plt.imshow(testX[number_2]
 plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nPixel Density: " + str(
             box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]))  # + "\nPredicted Latent Point 2: " + str(latent_point_2)
 plt.show()
+########################################################################################################################
+# Plotting the Interpolation in 3D
 
+voxel_interpolation = np.where(np.array(predicted_interps) > 0.1, predicted_interps, 0)
+print(np.shape(voxel_interpolation))
+# Create a new figure
+fig = plt.figure()
+
+# Axis with 3D projection
+ax = fig.add_subplot(projection='3d')
+
+# Plot the voxels
+cmap = plt.get_cmap("gray")
+ax.voxels(voxel_interpolation, edgecolor="k", facecolors=cmap(voxel_interpolation))
+
+# Display the plot
+plt.show()
 
 ########################################################################################################################
 # Plotting the Euclidean and RMSE Values between each step in the interpolation
