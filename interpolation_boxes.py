@@ -118,9 +118,8 @@ plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nP
 plt.show()
 ########################################################################################################################
 # Plotting the Interpolation in 3D
-
 voxel_interpolation = np.where(np.array(predicted_interps) > 0.1, predicted_interps, 0)
-print(np.shape(voxel_interpolation))
+
 # Create a new figure
 fig = plt.figure()
 
