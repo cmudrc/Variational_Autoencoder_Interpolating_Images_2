@@ -1,10 +1,11 @@
 import random
 import numpy as np
+from numpy import newaxis
 import matplotlib.pyplot as plt
 import math
 import scipy
 from scipy import signal
-
+from mpl_toolkits.mplot3d import Axes3D
 
 
 image_size = 28
@@ -128,66 +129,47 @@ def basic_box_array_step_gradient(image_size, pixel_step_change):
 
 
 ########################################################################################################################
-# gradient_test = hot_dog_array_step_density(image_size, pixel_step_change)[-1]  # The function used to create the steps
-gradient_test = basic_box_array_step_gradient(image_size, pixel_step_change) [-1]
+hot_dog = hot_dog_array_step_density(image_size, pixel_step_change)[-1]  # The function used to create the steps
+basic_box = basic_box_array_step_gradient(image_size, pixel_step_change) [-1]
+forward_slash = forward_slash_step_density(image_size, pixel_step_change)[-1]
+gradient_test = np.array([hot_dog, basic_box, forward_slash])
 
+# gradient_test = np.array(gradient_test)
 '''
-plt.subplot(1, 4, 1), plt.imshow(gradient_test, cmap='gray', vmin=0, vmax=1)
-plt.colorbar()
+num_interps =1
+fig = plt.figure()
+ax = fig.gca(projection='3d')
 
-roberts_cross_x = np.array([[1, 0], [0, -1]])  # Uses diagonally adjacent pixel to compute the gradient, so it will not necessarily come out correct
-roberts_cross_y = np.array([[0, 1], [-1, 0]])
+array = []
+for y in range(image_size):
+    row = []
+    for x in range(image_size):
+        for z in range(num_interps):
+            row.append([x, y, z])
+    array.append(row)
 
-gradient_x = np.array([[1, -1], [1, -1]])
-gradient_y = np.array([[-1, -1], [1, 1]])
 
-perwitt_x = np.array([[1, 0, -1], [1, 0, -1], [1, 0, -1]])
-perwitt_y = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]])
+ax.voxels(np.array(array), edgecolor="k")
+'''
+# Set the figure size
+# plt.rcParams["figure.figsize"] = [7.50, 3.50]
+# plt.rcParams["figure.autolayout"] = True
 
-sobel_x = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
-sobel_y = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
+# Random data points between 0 and 1
+print(gradient_test[0].shape)
+print(gradient_test.shape)
+# Create a new figure
+fig = plt.figure()
 
-G_x = scipy.signal.convolve2d(gradient_test.copy(), sobel_x, 'valid')
-G_y = scipy.signal.convolve2d(gradient_test.copy(), sobel_y, 'valid')
+# Axis with 3D projection
+ax = fig.add_subplot(projection='3d')
 
-# G_x = ndimage.convolve(gradient_test, gradient_x) #Working, but produces image of same size
-# G_y = ndimage.convolve(gradient_test, gradient_y) #Working, but produces image of same size
+# Plot the voxels
+cmap = plt.get_cmap("gray")
+ax.voxels(gradient_test, edgecolor="k", facecolors=cmap(gradient_test))  # , cmap='gray'
 
-print(G_x)
-print(np.shape(G_x))
-print(G_y)
-print(np.shape(G_y))
-
-gradient_size = len(G_x)
-
-gradient_zeros = np.zeros((gradient_size, gradient_size))
-gradient_ones = np.ones((gradient_size, gradient_size))
-
-x = np.arange(0, gradient_size, 1)
-y = np.arange(0, gradient_size, 1)
-x, y = np.meshgrid(x, y)
-
-gradient_magnitude = np.sqrt(np.square(G_x) + np.square(G_y))
-
-normx = np.linalg.norm(G_x.copy())
-normy = np.linalg.norm(G_y.copy())
-unit_x = G_x / normx
-unit_y = G_y / normy
-
-#  plt.imshow(G_x, cmap='gray')
-plt.subplot(1, 4, 2), plt.quiver(x, y, G_x, gradient_zeros, units='xy', scale=1, color='red'), plt.imshow(gradient_ones, origin='upper', cmap='gray', vmin=0, vmax=1)
-plt.title("Gradient in x Direction")
-plt.colorbar()
-
-# plt.imshow(G_y, cmap='gray') # , vmin=0, vmax=1
-plt.subplot(1, 4, 3), plt.quiver(x, y, gradient_zeros, G_y, units='xy', scale=1, color='red'), plt.imshow(gradient_ones, origin='upper', cmap='gray', vmin=0, vmax=1)
-plt.title("Gradient in y Direction")
-plt.colorbar()
-
-plt.subplot(1, 4, 4), plt.quiver(x, y, G_x, G_y, units='xy', scale=1, color='red'), plt.imshow(gradient_ones, origin='upper', cmap='gray', vmin=0, vmax=1)
-plt.gca().set_aspect('equal')
+# Display the plot
 plt.show()
-'''
 
 
 ########################################################################################################################
@@ -221,8 +203,8 @@ def gradient(array, filter="gradient"):
         filter_x = gradient_x
         filter_y = gradient_y
 
-    G_x = scipy.signal.convolve2d(gradient_test.copy(), filter_x, 'valid')
-    G_y = scipy.signal.convolve2d(gradient_test.copy(), filter_y, 'valid')
+    G_x = scipy.signal.convolve2d(array.copy(), filter_x, 'valid')
+    G_y = scipy.signal.convolve2d(array.copy(), filter_y, 'valid')
 
     # G_x = ndimage.convolve(gradient_test, gradient_x) #Working, but produces image of same size
     # G_y = ndimage.convolve(gradient_test, gradient_y) #Working, but produces image of same size
@@ -239,7 +221,7 @@ def gradient(array, filter="gradient"):
     gradient_magnitude = np.sqrt(np.square(G_x) + np.square(G_y))
 
     # normx = np.linalg.norm(G_x.copy())  # Used to show an even distribution of arrows
-    # normy = np.linalg.norm(G_y.copy())
+    # normy = np.linalg.norm(G_y.copy()) # Should we normalize our gradients?
     # unit_x = G_x / normx
     # unit_y = G_y / normy
 
@@ -264,7 +246,7 @@ def gradient(array, filter="gradient"):
     return G_x, G_y
 
 
-gradient(gradient_test)
+gradient(gradient_test[0])
 
 
 '''
