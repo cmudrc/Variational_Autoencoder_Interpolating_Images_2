@@ -23,7 +23,7 @@ max_density = 1  # (Recommend: 1) The maximum density IS included in the data cr
 
 
 # Define the parameters of the Autoencoder
-latent_dimensionality = 2
+latent_dimensionality = 4
 early_stopping_patience = 9  # "Number of epochs with no improvement after which training will be stopped." - Keras
 
 ########################################################################################################################
@@ -176,7 +176,7 @@ plt.show()
 
 # Plot Loss and R^2 Simultaneously
 fig, ax1 = plt.subplots()
-plt.title("Best Training R^2: " + str(max(autoencoder_fit.history["coeff_determination"])) + "\nBest Validation R^2: "
+plt.title("Latent Space Dimensionality: " + str(latent_dimensionality) + "\nBest Training R^2: " + str(max(autoencoder_fit.history["coeff_determination"])) + "\nBest Validation R^2: "
           + str(max(autoencoder_fit.history["val_coeff_determination"])) + "\nTotal Epochs: " + str(len(autoencoder_fit.history["coeff_determination"])))
 ax1.set_xlabel('Epochs')
 ax1.set_ylabel('Loss')
