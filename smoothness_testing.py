@@ -254,7 +254,7 @@ def gradient_3D(array_1, array_2, array_3, filter="sobel"):
     G_x = []
     G_y = []
     G_z = []
-    for i in array:
+    for i in range(0, 3):
         plt.subplot(1, 3, i+1), plt.imshow(array[i], cmap='gray', vmin=0, vmax=1)
         plt.colorbar()
         '''
@@ -285,61 +285,21 @@ def gradient_3D(array_1, array_2, array_3, filter="sobel"):
         sobel_y = np.array([[[-1, -2, -1], [0, 0, 0], [1, 2, 1]], [[-2, -4, -2], [ 0, 0, 0], [2, 4, 2]], [[-1, -2, -1], [0, 0, 0], [1, 2, 1]]])
         sobel_z = np.array([[[-1, -2, -1], [-2, -4, -2], [-1, -2, -1]], [[0, 0, 0], [0, 0, 0], [0, 0, 0]], [[1, 2, 1], [2, 4, 2], [1, 2, 1]]])
 
-        [[-1, -2, -1], [0, 0, 0], [1, 2, 1]]
-        [[-2, -4, -2], [ 0, 0, 0], [2, 4, 2]]
-
-
-        filter_x = sobel_x
-        filter_y = sobel_y
+        filter_x = sobel_x[i]
+        filter_y = sobel_y[i]
         filter_z = sobel_z[i]
 
         G_x += scipy.signal.convolve2d(array[i].copy(), filter_x, 'valid')
         G_y += scipy.signal.convolve2d(array[i].copy(), filter_y, 'valid')
         G_z += scipy.signal.convolve2d(array[i].copy(), filter_z, 'valid')
-
-
-
-
-
-
-    # G_x = ndimage.convolve(gradient_test, gradient_x) #Working, but produces image of same size
-    # G_y = ndimage.convolve(gradient_test, gradient_y) #Working, but produces image of same size
-
-    gradient_size = len(G_x)
-
-    gradient_zeros = np.zeros((gradient_size, gradient_size))
-    gradient_ones = np.ones((gradient_size, gradient_size))
-
-    x = np.arange(0, gradient_size, 1)
-    y = np.arange(0, gradient_size, 1)
-    x, y = np.meshgrid(x, y)
-
-    gradient_magnitude = np.sqrt(np.square(G_x) + np.square(G_y))
-
-    # normx = np.linalg.norm(G_x.copy())  # Used to show an even distribution of arrows
-    # normy = np.linalg.norm(G_y.copy()) # Should we normalize our gradients?
-    # unit_x = G_x / normx
-    # unit_y = G_y / normy
-
-    plt.subplot(1, 4, 2), plt.quiver(x, y, G_x, gradient_zeros, units='xy', scale=1, color='red'), plt.imshow(
-        gradient_ones, origin='upper', cmap='gray', vmin=0, vmax=1)
-    plt.title("Gradient in x Direction")
-    plt.colorbar()
-
-    plt.subplot(1, 4, 3), plt.quiver(x, y, gradient_zeros, G_y, units='xy', scale=1, color='red'), plt.imshow(
-        gradient_ones, origin='upper', cmap='gray', vmin=0, vmax=1)
-    plt.title("Gradient in y Direction")
-    plt.colorbar()
-
-    plt.subplot(1, 4, 4), plt.quiver(x, y, G_x, G_y, units='xy', scale=1, color='red'), plt.imshow(gradient_ones,
-                                                                                                   origin='upper',
-                                                                                                   cmap='gray', vmin=0,
-                                                                                                   vmax=1)
-    plt.title("Gradients Calculated with " + filter + " filter")
-    plt.gca().set_aspect('equal')
     plt.show()
+    G = np.sqrt(np.square(G_x) + np.square(G_x) + np.power(G_x, 2))  # Gradient magnitude calculation
 
-    return G_x, G_y
+    return G, G_x, G_y, G_z
+
+
+
+
 '''
 # DEBUG USE TO PLOT SMOOTHNESS TESTS
 tuple_test = basic_box_array_step_gradient(image_size, pixel_step_change)  # The function used to create the steps
