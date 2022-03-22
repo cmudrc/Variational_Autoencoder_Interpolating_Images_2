@@ -48,6 +48,21 @@ def RMSE(matrix1, matrix2):
     return RMSE
 
 
+def RMSE_vector(vector1, vector2):
+    matrix1, matrix2, matrix3 = vector1
+    matrix4, matrix5, matrix6 = vector2
+    matrix1 = np.reshape(matrix1, (1, np.shape(matrix1)[0] ** 2))
+    matrix2 = np.reshape(matrix2, (1, np.shape(matrix2)[0] ** 2))
+    matrix3 = np.reshape(matrix3, (1, np.shape(matrix3)[0] ** 2))
+    matrix4 = np.reshape(matrix4, (1, np.shape(matrix4)[0] ** 2))
+    matrix5 = np.reshape(matrix5, (1, np.shape(matrix5)[0] ** 2))
+    matrix6 = np.reshape(matrix6, (1, np.shape(matrix6)[0] ** 2))
+
+    RMSE = np.sqrt((np.sum(np.square(np.subtract(matrix1, matrix4))) + np.sum(np.square(np.subtract(matrix2, matrix5))) + np.sum(np.square(np.subtract(matrix3, matrix6)))) / (3*np.sqrt(np.shape(matrix1)[1])))
+
+    return RMSE
+
+
 def RMSE_plot(tuple_interpolations, num_interp):
     avg_coeff_det = []
     for i in range(num_interp-1):
@@ -57,12 +72,24 @@ def RMSE_plot(tuple_interpolations, num_interp):
 
     plt.xlabel("Set of Interpolation")
     plt.ylabel("RMSE between Images")
-    plt.title("RMSE to Evaluate Smoothness of Interpolations\n Average RMSE Value: "
+    plt.title("RMSE to Evaluate Smoothness of Interpolations using Gradient\n Average RMSE Value: "
               + str(np.average(avg_coeff_det)) + "\nPercent Smoothness: " + str(round(100 - (np.average(avg_coeff_det)*100), 3)) + "%")
     plt.ylim(0, 1.1)
     plt.show()
 
+def vector_RMSE_plot(gradient_vectors, num_interp):
+    avg_coeff_det = []
+    for i in range(num_interp-3):
+        coeff_det = RMSE_vector(gradient_vectors[:, i], gradient_vectors[:, i + 1])
+        avg_coeff_det.append(coeff_det)
+        plt.scatter(i, coeff_det)
 
+    plt.xlabel("Set of Interpolation")
+    plt.ylabel("RMSE between Gradients")
+    plt.title("VECTOR RMSE to Evaluate Smoothness of Interpolations\n Average RMSE Value: "
+              + str(np.average(avg_coeff_det)) + "\nPercent Smoothness: " + str(round(100 - (np.average(avg_coeff_det)*100), 3)) + "%")
+    # plt.ylim(0, 1.1)
+    plt.show()
 ########################################################################################################################
 # Step functions that output a tuple with arrays of step-wise transitions
 def forward_slash_step(image_size, pixel_step_change):
@@ -132,7 +159,8 @@ def basic_box_array_step_gradient(image_size, pixel_step_change):
 hot_dog = hot_dog_array_step_density(image_size, pixel_step_change)[-1]  # The function used to create the steps
 basic_box = basic_box_array_step_gradient(image_size, pixel_step_change) [-1]
 forward_slash = forward_slash_step_density(image_size, pixel_step_change)[-1]
-gradient_test = np.array([hot_dog, basic_box, forward_slash])
+forward_slash_step = forward_slash_step(image_size, pixel_step_change)[-1]
+gradient_test = np.array([hot_dog, basic_box, forward_slash, forward_slash_step])
 
 # gradient_test = np.array(gradient_test)
 '''
@@ -245,18 +273,19 @@ def gradient_2D(array, filter="gradient"):
 
     return G_x, G_y
 
-
+'''
+# Test gradient_2D
 gradient_2D(gradient_test[0])
+'''
 
 
-def gradient_3D(array_1, array_2, array_3, filter="sobel"):
+def gradient_3D(array_1, array_2, array_3, filter="sobel"):  # Will determine the gradient between 3 2-dimensional arrays, creating a 3-dimensional gradient
     array = [array_1, array_2, array_3]
-    G_x = []
-    G_y = []
-    G_z = []
+    filter_size = len(array_1)-2
+    G_x = np.zeros((filter_size, filter_size))
+    G_y = np.zeros((filter_size, filter_size))
+    G_z = np.zeros((filter_size, filter_size))
     for i in range(0, 3):
-        plt.subplot(1, 3, i+1), plt.imshow(array[i], cmap='gray', vmin=0, vmax=1)
-        plt.colorbar()
         '''
         #USE WHEN MORE FILTERS AVAILABLE
         roberts_cross_x = np.array([[1, 0], [0,
@@ -282,22 +311,89 @@ def gradient_3D(array_1, array_2, array_3, filter="sobel"):
             filter_y = gradient_y
         '''
         sobel_x = np.array([[[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], [[-2, 0, 2], [-4, 0, 4], [-2, 0, 2]], [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]])
-        sobel_y = np.array([[[-1, -2, -1], [0, 0, 0], [1, 2, 1]], [[-2, -4, -2], [ 0, 0, 0], [2, 4, 2]], [[-1, -2, -1], [0, 0, 0], [1, 2, 1]]])
+        sobel_y = np.array([[[-1, -2, -1], [0, 0, 0], [1, 2, 1]], [[-2, -4, -2], [0, 0, 0], [2, 4, 2]], [[-1, -2, -1], [0, 0, 0], [1, 2, 1]]])
         sobel_z = np.array([[[-1, -2, -1], [-2, -4, -2], [-1, -2, -1]], [[0, 0, 0], [0, 0, 0], [0, 0, 0]], [[1, 2, 1], [2, 4, 2], [1, 2, 1]]])
 
         filter_x = sobel_x[i]
         filter_y = sobel_y[i]
         filter_z = sobel_z[i]
 
-        G_x += scipy.signal.convolve2d(array[i].copy(), filter_x, 'valid')
-        G_y += scipy.signal.convolve2d(array[i].copy(), filter_y, 'valid')
-        G_z += scipy.signal.convolve2d(array[i].copy(), filter_z, 'valid')
-    plt.show()
-    G = np.sqrt(np.square(G_x) + np.square(G_x) + np.power(G_x, 2))  # Gradient magnitude calculation
+        G_x += scipy.signal.convolve2d(array[i].copy(), filter_x[::-1, ::-1], 'valid')  # Have to reverse the kernel with [::-1, ::-1]
+        G_y += scipy.signal.convolve2d(array[i].copy(), filter_y[::-1, ::-1], 'valid')
+        G_z += scipy.signal.convolve2d(array[i].copy(), filter_z[::-1, ::-1], 'valid')
+
+    G = np.sqrt(np.square(G_x) + np.square(G_y) + np.square(G_z))  # Gradient magnitude calculation
+
 
     return G, G_x, G_y, G_z
 
 
+'''
+# Test gradient_3D
+array_1 = [[0,0,0], [0,0,0], [0,0,1]]
+array_2 = [[0,0,0], [0,0,1], [0,1,1]]
+array_3 = [[0,0,1], [0,1,1], [1,1,1]]
+
+G, G_x, G_y, G_z = gradient_3D(array_1, array_2, array_3)
+'''
+
+
+def smoothness(interpolations):
+    num_interp = len(interpolations)
+
+    for i in range(0, num_interp):
+        plt.subplot(1, num_interp, i+1), plt.imshow(interpolations[i], cmap='gray', vmin=0, vmax=1)
+        plt.colorbar()
+    print("num interps")
+    print(num_interp)
+    G = []
+    G_x = []
+    G_y = []
+    G_z = []
+    gradient_size = len(interpolations[0]) - 2
+    print("gradient size")
+    print(gradient_size)
+    x = np.arange(0, gradient_size, 1)
+    y = np.arange(0, gradient_size, 1)
+    z = np.arange(0, num_interp - 2, 1)
+    x, y, z = np.meshgrid(x, y, z)
+    for i in range(num_interp - 2):
+        gradients = gradient_3D(interpolations[i], interpolations[i+1], interpolations[i+2])
+        G.append(gradients[0])
+        G_x.append(gradients[1])
+        G_y.append(gradients[2])
+        G_z.append(gradients[3])
+    G_x_stack = G_x[0]
+    G_y_stack = G_y[0]
+    G_z_stack = G_z[0]
+    for j in range(1, len(G_x)):
+        G_x_stack = np.dstack((G_x_stack, G_x[j]))
+        G_y_stack = np.dstack((G_y_stack, G_y[j]))
+        G_z_stack = np.dstack((G_z_stack, G_z[j]))
+    # G_x = np.dstack((G_x[0], G_x[1]))
+    gradient_vectors = np.array((G_x, G_y, G_z))
+
+    print("Gradient vectors")
+    print(np.shape(gradient_vectors))
+    print(np.shape(gradient_vectors[:, 0]))
+    print(gradient_vectors[:, 0])
+    print("gx")
+    print(G_x[0])
+    print("gz")
+    print(G_z[0])
+    ax = plt.figure().add_subplot(projection='3d')
+    ax.quiver(x, y, z, G_x_stack, G_y_stack, G_z_stack , color='red', length=0.1, normalize=True)
+    plt.show()
+
+    norm_G = G / np.linalg.norm(G.copy())
+
+
+    RMSE_plot(norm_G, len(norm_G))
+    vector_RMSE_plot(gradient_vectors, num_interp)
+    return
+
+
+smoothness(gradient_test)
 
 
 '''

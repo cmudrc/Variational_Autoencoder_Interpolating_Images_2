@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn.manifold import TSNE
 import gradio as gr
 from sklearn.decomposition import PCA
-from smoothness_testing import euclidean_plot, RMSE_plot
+from smoothness_testing import euclidean_plot, RMSE_plot, smoothness
 # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import pacmap  # will need to change numba version: pip install numba==0.53
 from Dimensionality_Reduction_Latent_Space import PaCMAP_plot, PCA_plot, PCA_TSNE_plot, TSNE_plot, plot_dimensionality_reduction
@@ -48,7 +48,7 @@ shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "b
               "x_hot_dog_box", "x_plus_box")
 
 box_shape_1 = "x_hot_dog_box"
-box_shape_2 = "basic_box"
+box_shape_2 = "x_plus_box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
 indices_1 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_1]
@@ -132,7 +132,9 @@ ax.voxels(voxel_interpolation, edgecolor="k", facecolors=cmap(voxel_interpolatio
 
 # Display the plot
 plt.show()
-
+########################################################################################################################
+# Determining Smoothness using Gradient
+smoothness(predicted_interps)
 ########################################################################################################################
 # Plotting the Euclidean and RMSE Values between each step in the interpolation
 euclidean_plot(predicted_interps, num_interp)  # will calculate and plot the euclidean distances between each step in the interpolation
