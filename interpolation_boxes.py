@@ -229,21 +229,32 @@ plt.show()
 # Latent Feature Cluster for Training Data using T-SNE and Predicted Latent Points
 x, y, title = TSNE_plot(latent_points, latent_dimensionality)
 plot_dimensionality_reduction(x, y, box_shape_train, title)
-
+plt.show()
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA reduced T-SNE and Predicted Latent Points
 x, y, title = PCA_TSNE_plot(latent_points, latent_dimensionality)
 plot_dimensionality_reduction(x, y, box_shape_train, title)
-
+plt.show()
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
-x, y, title = PCA_plot(latent_points, latent_dimensionality)
-plot_dimensionality_reduction(x, y, box_shape_train, title)
+
+all_latent_points = np.vstack((latent_points, latent_matrix))
+all_latent_labels = box_shape_train
+for i in range(len(latent_matrix)):
+    all_latent_labels = np.append(all_latent_labels, "Predicted_Latent_Point")
+print(np.shape(all_latent_points))
+print(np.shape(np.flipud(all_latent_points)))
+print(all_latent_points[0])
+print(np.flipud(all_latent_points)[-1])
+x, y, title = PCA_plot(np.flipud(all_latent_points), latent_dimensionality,)
+
+plot_dimensionality_reduction(x, y, np.flipud(all_latent_labels), title)
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points
 x, y, title = PaCMAP_plot(latent_points, latent_dimensionality)
 plot_dimensionality_reduction(x, y, box_shape_train, title)
+
 plot_dimensionality_reduction(x, y, avg_density, title)
 
 '''
