@@ -238,17 +238,31 @@ plt.show()
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
 
+'''
 all_latent_points = np.vstack((latent_points, latent_matrix))
 all_latent_labels = box_shape_train
+
+
 for i in range(len(latent_matrix)):
     all_latent_labels = np.append(all_latent_labels, "Predicted_Latent_Point")
-print(np.shape(all_latent_points))
-print(np.shape(np.flipud(all_latent_points)))
-print(all_latent_points[0])
-print(np.flipud(all_latent_points)[-1])
-x, y, title = PCA_plot(np.flipud(all_latent_points), latent_dimensionality,)
 
-plot_dimensionality_reduction(x, y, np.flipud(all_latent_labels), title)
+# x, y, title = PCA_plot(np.flipud(all_latent_points), latent_dimensionality)
+'''
+x1, y1, title1 = PCA_plot(latent_points, latent_dimensionality)
+x2, y2, title2 = PCA_plot(latent_matrix, latent_dimensionality)
+
+print(set(box_shape_train))
+print(np.where(np.array(box_shape_train) == "basic_box"))
+for label in set(box_shape_train):
+    print(label)
+    cond = np.where(np.array(box_shape_train) == str(label))
+    # print(cond[0])
+    plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
+# plt.plot(x2, y2, marker='o', linestyle='none', label="Predicted Points")
+plt.legend(numpoints=1) # np.append(np.array(set(box_shape_train)), 'Predicted_Latent_Points')
+plt.title(title1)
+plt.show()
+# plot_dimensionality_reduction(x, y, np.flipud(all_latent_labels), title)
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points

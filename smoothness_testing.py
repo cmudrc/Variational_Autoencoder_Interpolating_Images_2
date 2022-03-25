@@ -156,51 +156,7 @@ def basic_box_array_step_gradient(image_size, pixel_step_change):
 
 
 ########################################################################################################################
-hot_dog = hot_dog_array_step_density(image_size, pixel_step_change)[-1]  # The function used to create the steps
-basic_box = basic_box_array_step_gradient(image_size, pixel_step_change) [-1]
-forward_slash = forward_slash_step_density(image_size, pixel_step_change)[-1]
-forward_slash_step = forward_slash_step(image_size, pixel_step_change)[-1]
-gradient_test = np.array([hot_dog, basic_box, forward_slash, forward_slash_step])
-
-# gradient_test = np.array(gradient_test)
-'''
-num_interps =1
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-
-array = []
-for y in range(image_size):
-    row = []
-    for x in range(image_size):
-        for z in range(num_interps):
-            row.append([x, y, z])
-    array.append(row)
-
-
-ax.voxels(np.array(array), edgecolor="k")
-'''
-# Set the figure size
-# plt.rcParams["figure.figsize"] = [7.50, 3.50]
-# plt.rcParams["figure.autolayout"] = True
-
-# Random data points between 0 and 1
-print(gradient_test[0].shape)
-print(gradient_test.shape)
-# Create a new figure
-fig = plt.figure()
-
-# Axis with 3D projection
-ax = fig.add_subplot(projection='3d')
-
-# Plot the voxels
-cmap = plt.get_cmap("gray")
-ax.voxels(gradient_test, edgecolor="k", facecolors=cmap(gradient_test))  # , cmap='gray'
-
-# Display the plot
-plt.show()
-
-
-########################################################################################################################
+# Gradient Calculations
 def gradient_2D(array, filter="gradient"):
     plt.subplot(1, 4, 1), plt.imshow(array, cmap='gray', vmin=0, vmax=1)
     plt.colorbar()
@@ -246,8 +202,6 @@ def gradient_2D(array, filter="gradient"):
     y = np.arange(0, gradient_size, 1)
     x, y = np.meshgrid(x, y)
 
-    gradient_magnitude = np.sqrt(np.square(G_x) + np.square(G_y))
-
     # normx = np.linalg.norm(G_x.copy())  # Used to show an even distribution of arrows
     # normy = np.linalg.norm(G_y.copy()) # Should we normalize our gradients?
     # unit_x = G_x / normx
@@ -272,11 +226,6 @@ def gradient_2D(array, filter="gradient"):
     plt.show()
 
     return G_x, G_y
-
-'''
-# Test gradient_2D
-gradient_2D(gradient_test[0])
-'''
 
 
 def gradient_3D(array_1, array_2, array_3, filter="sobel"):  # Will determine the gradient between 3 2-dimensional arrays, creating a 3-dimensional gradient
@@ -324,18 +273,7 @@ def gradient_3D(array_1, array_2, array_3, filter="sobel"):  # Will determine th
 
     G = np.sqrt(np.square(G_x) + np.square(G_y) + np.square(G_z))  # Gradient magnitude calculation
 
-
     return G, G_x, G_y, G_z
-
-
-'''
-# Test gradient_3D
-array_1 = [[0,0,0], [0,0,0], [0,0,1]]
-array_2 = [[0,0,0], [0,0,1], [0,1,1]]
-array_3 = [[0,0,1], [0,1,1], [1,1,1]]
-
-G, G_x, G_y, G_z = gradient_3D(array_1, array_2, array_3)
-'''
 
 
 def smoothness(interpolations):
@@ -393,10 +331,17 @@ def smoothness(interpolations):
     return
 
 
-smoothness(gradient_test)
-
-
+########################################################################################################################
 '''
+# DEBUG TO TEST SMOOTHNESS
+hot_dog = hot_dog_array_step_density(image_size, pixel_step_change)[-1]  # The function used to create the steps
+basic_box = basic_box_array_step_gradient(image_size, pixel_step_change) [-1]
+forward_slash = forward_slash_step_density(image_size, pixel_step_change)[-1]
+forward_slash_step = forward_slash_step(image_size, pixel_step_change)[-1]
+gradient_test = np.array([hot_dog, basic_box, forward_slash, forward_slash_step])
+
+
+
 # DEBUG USE TO PLOT SMOOTHNESS TESTS
 tuple_test = basic_box_array_step_gradient(image_size, pixel_step_change)  # The function used to create the steps
 # tuple_test = hot_dog_array_step(image_size, pixel_step_change)
@@ -419,6 +364,26 @@ plt.show()
 
 RMSE_plot(tuple_test, num_interp)
 euclidean_plot(tuple_test, num_interp)
+
+
+
+# DEBUG PLOT VOXELS TEST
+# Create a new figure
+fig = plt.figure()
+# Axis with 3D projection
+ax = fig.add_subplot(projection='3d')
+# Plot the voxels
+cmap = plt.get_cmap("gray")
+ax.voxels(gradient_test, edgecolor="k", facecolors=cmap(gradient_test))  # , cmap='gray'
+# Display the plot
+plt.show()
+
+
+# DEBUG Test gradient_3D
+array_1 = [[0,0,0], [0,0,0], [0,0,1]]
+array_2 = [[0,0,0], [0,0,1], [0,1,1]]
+array_3 = [[0,0,1], [0,1,1], [1,1,1]]
+
+G, G_x, G_y, G_z = gradient_3D(array_1, array_2, array_3)
+
 '''
-
-

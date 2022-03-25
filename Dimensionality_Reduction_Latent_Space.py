@@ -9,11 +9,11 @@ from sklearn.decomposition import PCA
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP
-def PaCMAP_plot(latent_points, latent_dimensionality):
+def PaCMAP_plot(latent_points, latent_dimensionality, random_state=1):
     # initializing the pacmap instance
     X = latent_points
 
-    embedding = pacmap.PaCMAP(n_dims=2, n_neighbors=None, MN_ratio=0.5, FP_ratio=2.0)
+    embedding = pacmap.PaCMAP(n_dims=2, n_neighbors=None, MN_ratio=0.5, FP_ratio=2.0, random_state=random_state)
 
     # fit the data (The index of transformed data corresponds to the index of the original data)
     X_transformed = embedding.fit_transform(X, init="pca")
@@ -41,6 +41,9 @@ def PCA_plot(latent_points, latent_dimensionality, perplexity=7, learning_rate=2
         learning_rate) + "\nLatent Space Dimensionality: " + str(latent_dimensionality)
     x = pca_fit[:, 0]
     y = pca_fit[:, 1]
+    # predict = pca.fit_transform(latent_matrix)
+    # predict_x = predict[:, 0]
+    # predict_y = predict[:, 0]
     return x, y, title
 
 
@@ -91,7 +94,9 @@ def TSNE_plot(latent_points, latent_dimensionality, perplexity=30, learning_rate
 ########################################################################################################################
 def plot_dimensionality_reduction(x, y, label, title):
     df = pd.DataFrame({'label': label})  # Acts as a grouping variable to produce points with different colors
+    color_dict = {'Predicted_Latent_Point': 'red', '': 'blue', '': 'black', '': 'green', '': 'purple'}
     plt.figure(figsize=(8, 6))
     plt.title(title)
     sns.scatterplot(x=x, y=y, hue='label', data=df)
+    # plt.scatter(x=x, y=y, c=[color_dict[i] for i in df['label']] )
     plt.show()
