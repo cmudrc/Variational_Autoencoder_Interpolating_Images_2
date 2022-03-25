@@ -258,7 +258,9 @@ for label in set(box_shape_train):
     cond = np.where(np.array(box_shape_train) == str(label))
     # print(cond[0])
     plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
-# plt.plot(x2, y2, marker='o', linestyle='none', label="Predicted Points")
+plt.plot(x2, y2, marker='o', c='red', markersize=10,linestyle='none', label="Predicted Points")
+
+# for i, point in enumerate(np.hstack(x2,y2))
 plt.legend(numpoints=1) # np.append(np.array(set(box_shape_train)), 'Predicted_Latent_Points')
 plt.title(title1)
 plt.show()
