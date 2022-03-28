@@ -251,6 +251,8 @@ for i in range(len(latent_matrix)):
 x1, y1, title1 = PCA_plot(latent_points, latent_dimensionality)
 x2, y2, title2 = PCA_plot(latent_matrix, latent_dimensionality)
 
+
+
 print(set(box_shape_train))
 print(np.where(np.array(box_shape_train) == "basic_box"))
 for label in set(box_shape_train):
@@ -258,10 +260,16 @@ for label in set(box_shape_train):
     cond = np.where(np.array(box_shape_train) == str(label))
     # print(cond[0])
     plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
-plt.plot(x2, y2, marker='o', c='red', markersize=10,linestyle='none', label="Predicted Points")
+plt.plot(x2, y2, 'ro-')  # Plot the lines connecting the interpolated latent points
+plt.plot(x2, y2, marker='o', c='red', markersize=8, linestyle='none', label="Predicted Points")
+# for i, point in enumerate(np.hstack(x2,y2)):
+#     plt.plot()
 
-# for i, point in enumerate(np.hstack(x2,y2))
-plt.legend(numpoints=1) # np.append(np.array(set(box_shape_train)), 'Predicted_Latent_Points')
+# for i in range(0, len(x2)-1, 2):
+#     plt.plot(x2[i:i+1], y2[i:i+1], 'ro-')
+
+
+plt.legend(numpoints=1)  # np.append(np.array(set(box_shape_train)), 'Predicted_Latent_Points')
 plt.title(title1)
 plt.show()
 # plot_dimensionality_reduction(x, y, np.flipud(all_latent_labels), title)
