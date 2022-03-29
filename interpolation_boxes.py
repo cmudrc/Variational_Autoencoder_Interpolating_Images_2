@@ -48,7 +48,7 @@ shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "b
               "x_hot_dog_box", "x_plus_box")
 
 box_shape_1 = "x_hot_dog_box"
-box_shape_2 = "x_plus_box"
+box_shape_2 = "basic_box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
 indices_1 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_1]
@@ -123,16 +123,30 @@ for i in range(len(box_shape_train)):
     predicted_train = encoder_model_boxes.predict(np.array([train_data[i]]))
     train_latent_points.append(predicted_train[0])
 train_latent_points = np.array(train_latent_points)
-print("train latent points shape")
-print(np.shape(train_latent_points))
-print("column")
-print(train_latent_points[:,0])
-print(np.shape(train_latent_points[:,0]))
 
 print("std")
 print(np.std(train_latent_points, axis=0))
 print("mean")
 print(np.mean(train_latent_points, axis=0))
+
+train_mean = np.mean(train_latent_points, axis=0)
+train_std = np.std(train_latent_points, axis=0)
+latent_point_1_std = train_mean-3*train_std
+for latent_point_2_std in [train_mean-2*train_std, train_mean-train_std, train_mean, train_mean+train_std, train_mean+2*train_std, train_mean+3*train_std]:
+    latent_matrix_std = []
+    for column in range(latent_dimensionality):
+        new_column = np.linspace(latent_point_1_std[column], latent_point_2_std[column], num_interp)
+        latent_matrix_std.append(new_column)
+    latent_matrix_std = np.array(latent_matrix_std).T  # Transposes the matrix so that each row can be easily indexed
+
+    predicted_interps_std = []  # Used to store the predicted interpolations
+    # Interpolate the Images and Print out to User
+    for latent_point in range(2, num_interp + 2):  # cycles the latent points through the decoder model to create images
+        generated_image = decoder_model_boxes.predict(np.array([latent_matrix_std[latent_point - 2]]))[0]  # generates an interpolated image based on the latent point
+        predicted_interps_std.append(generated_image[:, :, -1])
+
+    # Determining Smoothness using Gradient
+    smoothness(predicted_interps_std)
 ########################################################################################################################
 # Plotting the Interpolation in 3D
 voxel_interpolation = np.where(np.array(predicted_interps) > 0.1, predicted_interps, 0)
