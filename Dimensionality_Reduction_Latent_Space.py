@@ -92,11 +92,25 @@ def TSNE_reduction(latent_points, latent_dimensionality, perplexity=30, learning
 
 
 ########################################################################################################################
-def plot_dimensionality_reduction(x, y, label, title):
-    df = pd.DataFrame({'label': label})  # Acts as a grouping variable to produce points with different colors
+def plot_dimensionality_reduction(x, y, label_set, title):
+    '''
+    df = pd.DataFrame({'label': label_set})  # Acts as a grouping variable to produce points with different colors
     color_dict = {'Predicted_Latent_Point': 'red', '': 'blue', '': 'black', '': 'green', '': 'purple'}
     plt.figure(figsize=(8, 6))
-    plt.title(title)
+
     sns.scatterplot(x=x, y=y, hue='label', data=df)
-    # plt.scatter(x=x, y=y, c=[color_dict[i] for i in df['label']] )
+    '''
+    plt.title(title)
+    if label_set[0].dtype == float:
+        plt.scatter(x, y, c=label_set)
+        plt.colorbar()
+        print("using scatter")
+    else:
+        for label in set(label_set):
+            cond = np.where(np.array(label_set) == str(label))
+            plt.plot(x[cond], y[cond], marker='o', linestyle='none', label=label)
+
+        plt.legend(numpoints=1)
+
     plt.show()
+    plt.close()
