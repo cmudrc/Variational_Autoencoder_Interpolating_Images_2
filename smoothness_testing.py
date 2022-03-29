@@ -49,16 +49,16 @@ def RMSE(matrix1, matrix2):
 
 
 def RMSE_vector(vector1, vector2):
-    matrix1, matrix2, matrix3 = vector1
-    matrix4, matrix5, matrix6 = vector2
-    matrix1 = np.reshape(matrix1, (1, np.shape(matrix1)[0] ** 2))
-    matrix2 = np.reshape(matrix2, (1, np.shape(matrix2)[0] ** 2))
-    matrix3 = np.reshape(matrix3, (1, np.shape(matrix3)[0] ** 2))
-    matrix4 = np.reshape(matrix4, (1, np.shape(matrix4)[0] ** 2))
-    matrix5 = np.reshape(matrix5, (1, np.shape(matrix5)[0] ** 2))
-    matrix6 = np.reshape(matrix6, (1, np.shape(matrix6)[0] ** 2))
+    matrix_x1, matrix_y1, matrix_z1 = vector1
+    matrix_x2, matrix_y2, matrix_z2 = vector2
+    matrix_x1 = np.reshape(matrix_x1, (1, np.shape(matrix_x1)[0] ** 2)) # flatten all of the matrices in order to do the element wise operations
+    matrix_y1 = np.reshape(matrix_y1, (1, np.shape(matrix_y1)[0] ** 2))
+    matrix_z1 = np.reshape(matrix_z1, (1, np.shape(matrix_z1)[0] ** 2))
+    matrix_x2 = np.reshape(matrix_x2, (1, np.shape(matrix_x2)[0] ** 2))
+    matrix_y2 = np.reshape(matrix_y2, (1, np.shape(matrix_y2)[0] ** 2))
+    matrix_z2 = np.reshape(matrix_z2, (1, np.shape(matrix_z2)[0] ** 2))
 
-    RMSE = np.sqrt((np.sum(np.square(np.subtract(matrix1, matrix4))) + np.sum(np.square(np.subtract(matrix2, matrix5))) + np.sum(np.square(np.subtract(matrix3, matrix6)))) / (3*np.sqrt(np.shape(matrix1)[1])))
+    RMSE = (np.sqrt(np.sum(np.square(np.subtract(matrix_x1, matrix_x2)))) + np.sqrt(np.sum(np.square(np.subtract(matrix_y1, matrix_y2)))) + np.sqrt(np.sum(np.square(np.subtract(matrix_z1, matrix_z2))))) / (3*np.sqrt(np.shape(matrix_x1)[1]))
 
     return RMSE
 
@@ -190,9 +190,6 @@ def gradient_2D(array, filter="gradient"):
     G_x = scipy.signal.convolve2d(array.copy(), filter_x, 'valid')
     G_y = scipy.signal.convolve2d(array.copy(), filter_y, 'valid')
 
-    # G_x = ndimage.convolve(gradient_test, gradient_x) #Working, but produces image of same size
-    # G_y = ndimage.convolve(gradient_test, gradient_y) #Working, but produces image of same size
-
     gradient_size = len(G_x)
 
     gradient_zeros = np.zeros((gradient_size, gradient_size))
@@ -202,10 +199,6 @@ def gradient_2D(array, filter="gradient"):
     y = np.arange(0, gradient_size, 1)
     x, y = np.meshgrid(x, y)
 
-    # normx = np.linalg.norm(G_x.copy())  # Used to show an even distribution of arrows
-    # normy = np.linalg.norm(G_y.copy()) # Should we normalize our gradients?
-    # unit_x = G_x / normx
-    # unit_y = G_y / normy
 
     plt.subplot(1, 4, 2), plt.quiver(x, y, G_x, gradient_zeros, units='xy', scale=1, color='red'), plt.imshow(
         gradient_ones, origin='upper', cmap='gray', vmin=0, vmax=1)
@@ -272,7 +265,7 @@ def gradient_3D(array_1, array_2, array_3, filter="sobel"):  # Will determine th
         G_z += scipy.signal.convolve2d(array[i].copy(), filter_z[::-1, ::-1], 'valid')
 
     G = np.sqrt(np.square(G_x) + np.square(G_y) + np.square(G_z))  # Gradient magnitude calculation
-
+    G = 2. * (G - np.min(G)) / np.ptp(G) - 1  # Normalize G between -1 and 1
     return G, G_x, G_y, G_z
 
 
@@ -282,15 +275,13 @@ def smoothness(interpolations):
     for i in range(0, num_interp):
         plt.subplot(1, num_interp, i+1), plt.imshow(interpolations[i], cmap='gray', vmin=0, vmax=1)
         plt.colorbar()
-    print("num interps")
-    print(num_interp)
+
     G = []
     G_x = []
     G_y = []
     G_z = []
     gradient_size = len(interpolations[0]) - 2
-    print("gradient size")
-    print(gradient_size)
+
     x = np.arange(0, gradient_size, 1)
     y = np.arange(0, gradient_size, 1)
     z = np.arange(0, num_interp - 2, 1)
@@ -308,28 +299,17 @@ def smoothness(interpolations):
         G_x_stack = np.dstack((G_x_stack, G_x[j]))
         G_y_stack = np.dstack((G_y_stack, G_y[j]))
         G_z_stack = np.dstack((G_z_stack, G_z[j]))
-    # G_x = np.dstack((G_x[0], G_x[1]))
-    gradient_vectors = np.array((G_x, G_y, G_z))
 
-    print("Gradient vectors")
-    print(np.shape(gradient_vectors))
-    print(np.shape(gradient_vectors[:, 0]))
-    print(gradient_vectors[:, 0])
-    print("gx")
-    print(G_x[0])
-    print("gz")
-    print(G_z[0])
+    gradient_vectors = np.array((G_x, G_y, G_z))
+    gradient_vectors = 2. * (gradient_vectors - np.min(gradient_vectors)) / np.ptp(gradient_vectors) - 1  # Normalize G between -1 and 1
+
     ax = plt.figure().add_subplot(projection='3d')
-    ax.quiver(x, y, z, G_x_stack, G_y_stack, G_z_stack , color='red', length=0.1, normalize=True)
+    ax.quiver(x, y, z, G_x_stack, G_y_stack, G_z_stack, color='red', length=0.1, normalize=True)
     plt.show()
 
-    norm_G = G / np.linalg.norm(G.copy())
-
-
-    RMSE_plot(norm_G, len(norm_G))
+    RMSE_plot(G, len(G))
     vector_RMSE_plot(gradient_vectors, num_interp)
     return
-
 
 ########################################################################################################################
 '''
