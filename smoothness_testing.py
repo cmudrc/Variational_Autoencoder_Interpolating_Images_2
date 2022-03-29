@@ -274,7 +274,6 @@ def smoothness(interpolations):
 
     for i in range(0, num_interp):
         plt.subplot(1, num_interp, i+1), plt.imshow(interpolations[i], cmap='gray', vmin=0, vmax=1)
-        plt.colorbar()
 
     G = []
     G_x = []
@@ -307,7 +306,6 @@ def smoothness(interpolations):
     ax.quiver(x, y, z, G_x_stack, G_y_stack, G_z_stack, color='red', length=0.1, normalize=True)
     plt.show()
 
-    RMSE_plot(G, len(G))
     vector_RMSE_plot(gradient_vectors, num_interp)
     return
 
