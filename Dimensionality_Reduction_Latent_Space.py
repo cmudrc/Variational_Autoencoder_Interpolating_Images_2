@@ -9,7 +9,7 @@ from sklearn.decomposition import PCA
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP
-def PaCMAP_plot(latent_points, latent_dimensionality, random_state=1):
+def PaCMAP_reduction(latent_points, latent_dimensionality, random_state=1):
     # initializing the pacmap instance
     X = latent_points
 
@@ -27,7 +27,7 @@ def PaCMAP_plot(latent_points, latent_dimensionality, random_state=1):
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
-def PCA_plot(latent_points, latent_dimensionality, perplexity=7, learning_rate=20):
+def PCA_reduction(latent_points, latent_dimensionality, perplexity=7, learning_rate=20):
     pca = PCA(n_components=2)
     pca_fit = pca.fit_transform(latent_points)
     # configuring the parameters
@@ -49,7 +49,7 @@ def PCA_plot(latent_points, latent_dimensionality, perplexity=7, learning_rate=2
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA reduced T-SNE
-def PCA_TSNE_plot(latent_points, latent_dimensionality, perplexity=30, learning_rate=20):
+def PCA_TSNE_reduction(latent_points, latent_dimensionality, perplexity=30, learning_rate=20):
     pca = PCA(n_components=2)
     pca_fit = pca.fit_transform(latent_points)
     model = TSNE(n_components=2, random_state=0, perplexity=perplexity,
@@ -72,7 +72,7 @@ def PCA_TSNE_plot(latent_points, latent_dimensionality, perplexity=30, learning_
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using T-SNE
-def TSNE_plot(latent_points, latent_dimensionality, perplexity=30, learning_rate=20):
+def TSNE_reduction(latent_points, latent_dimensionality, perplexity=30, learning_rate=20):
     model = TSNE(n_components=2, random_state=0, perplexity=perplexity,
                  learning_rate=learning_rate)  # Perplexity(5-50) | learning_rate(10-1000)
     # configuring the parameters

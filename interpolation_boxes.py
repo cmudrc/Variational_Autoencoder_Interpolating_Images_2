@@ -12,7 +12,7 @@ from sklearn.decomposition import PCA
 from smoothness_testing import euclidean_plot, RMSE_plot, smoothness
 # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import pacmap  # will need to change numba version: pip install numba==0.53
-from Dimensionality_Reduction_Latent_Space import PaCMAP_plot, PCA_plot, PCA_TSNE_plot, TSNE_plot, plot_dimensionality_reduction
+from Dimensionality_Reduction_Latent_Space import PaCMAP_reduction, PCA_reduction, PCA_TSNE_reduction, TSNE_reduction, plot_dimensionality_reduction
 warnings.filterwarnings('ignore')
 disable_eager_execution()
 ########################################################################################################################
@@ -227,29 +227,20 @@ plt.show()
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using T-SNE and Predicted Latent Points
-x, y, title = TSNE_plot(latent_points, latent_dimensionality)
+x, y, title = TSNE_reduction(latent_points, latent_dimensionality)
 plot_dimensionality_reduction(x, y, box_shape_train, title)
 plt.show()
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA reduced T-SNE and Predicted Latent Points
-x, y, title = PCA_TSNE_plot(latent_points, latent_dimensionality)
+x, y, title = PCA_TSNE_reduction(latent_points, latent_dimensionality)
 plot_dimensionality_reduction(x, y, box_shape_train, title)
 plt.show()
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
 
-'''
-all_latent_points = np.vstack((latent_points, latent_matrix))
-all_latent_labels = box_shape_train
 
-
-for i in range(len(latent_matrix)):
-    all_latent_labels = np.append(all_latent_labels, "Predicted_Latent_Point")
-
-# x, y, title = PCA_plot(np.flipud(all_latent_points), latent_dimensionality)
-'''
-x1, y1, title1 = PCA_plot(latent_points, latent_dimensionality)
-x2, y2, title2 = PCA_plot(latent_matrix, latent_dimensionality)
+x1, y1, title1 = PCA_reduction(latent_points, latent_dimensionality)
+x2, y2, title2 = PCA_reduction(latent_matrix, latent_dimensionality)
 
 
 
@@ -262,11 +253,6 @@ for label in set(box_shape_train):
     plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
 plt.plot(x2, y2, 'ro-')  # Plot the lines connecting the interpolated latent points
 plt.plot(x2, y2, marker='o', c='red', markersize=8, linestyle='none', label="Predicted Points")
-# for i, point in enumerate(np.hstack(x2,y2)):
-#     plt.plot()
-
-# for i in range(0, len(x2)-1, 2):
-#     plt.plot(x2[i:i+1], y2[i:i+1], 'ro-')
 
 
 plt.legend(numpoints=1)  # np.append(np.array(set(box_shape_train)), 'Predicted_Latent_Points')
@@ -276,22 +262,9 @@ plt.show()
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points
-x, y, title = PaCMAP_plot(latent_points, latent_dimensionality)
+x, y, title = PaCMAP_reduction(latent_points, latent_dimensionality)
 plot_dimensionality_reduction(x, y, box_shape_train, title)
 
 plot_dimensionality_reduction(x, y, avg_density, title)
 
-'''
-def shape_select(number):
-    return "This is your" + str(number)
 
-
-iface = gr.Interface(
-    fn=shape_select,
-    inputs=gr.inputs.Dropdown((1, 2, 3), type="value", default=None, label=None, optional=False),
-    outputs="text",
-    interpretation=None,
-)
-
-iface.launch(share=True)
-'''
