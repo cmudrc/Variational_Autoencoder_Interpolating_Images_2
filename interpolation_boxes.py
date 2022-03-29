@@ -93,7 +93,7 @@ for column in range(latent_dimensionality):
     latent_matrix.append(new_column)
 latent_matrix = np.array(latent_matrix).T  # Transposes the matrix so that each row can be easily indexed
 ########################################################################################################################
-# Plotting the Interpolation in 2D
+# Plotting the Interpolation in 2D Using Random
 plot_rows = 2
 plot_columns = num_interp + 2
 
@@ -105,7 +105,6 @@ plt.title("First Interpolation Point:\n" + str(box_shape_test[number_1]) + "\nPi
 predicted_interps = []  # Used to store the predicted interpolations
 # Interpolate the Images and Print out to User
 for latent_point in range(2, num_interp + 2):  # cycles the latent points through the decoder model to create images
-    # generated_image.append((decoder_model_boxes.predict(np.array([latent_matrix[latent_point]]))[0]))
     generated_image = decoder_model_boxes.predict(np.array([latent_matrix[latent_point - 2]]))[0]  # generates an interpolated image based on the latent point
     predicted_interps.append(generated_image[:, :, -1])
     plt.subplot(plot_rows, plot_columns, latent_point), plt.imshow(generated_image[:, :, -1], cmap='gray', vmin=0, vmax=1)
@@ -116,6 +115,24 @@ plt.subplot(plot_rows, plot_columns, num_interp + 2), plt.imshow(testX[number_2]
 plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nPixel Density: " + str(
             box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]))  # + "\nPredicted Latent Point 2: " + str(latent_point_2)
 plt.show()
+########################################################################################################################
+# Standard Deviation Smoothness Evaluation
+train_latent_points = []
+train_data = np.reshape(box_matrix_train, (len(box_matrix_train), image_size, image_size, 1))
+for i in range(len(box_shape_train)):
+    predicted_train = encoder_model_boxes.predict(np.array([train_data[i]]))
+    train_latent_points.append(predicted_train[0])
+train_latent_points = np.array(train_latent_points)
+print("train latent points shape")
+print(np.shape(train_latent_points))
+print("column")
+print(train_latent_points[:,0])
+print(np.shape(train_latent_points[:,0]))
+
+print("std")
+print(np.std(train_latent_points, axis=0))
+print("mean")
+print(np.mean(train_latent_points, axis=0))
 ########################################################################################################################
 # Plotting the Interpolation in 3D
 voxel_interpolation = np.where(np.array(predicted_interps) > 0.1, predicted_interps, 0)
@@ -179,11 +196,10 @@ x = []
 y = []
 z = []
 avg_density = []  # An integer label that is based on the average density of the matrix
-latent_points = []
+
 for i in range(len(box_shape_train)):
     z.append(box_shape_train[i])
     op = encoder_model_boxes.predict(np.array([train_data[i]]))
-    latent_points.append(op[0])
     x.append(op[0][0])
     y.append(op[0][1])
     avg_density.append(np.average(box_matrix_train[i]))
@@ -191,7 +207,6 @@ print(avg_density[0])
 print(np.shape(avg_density))
 ########################################################################################################################
 # Latent Feature Cluster for Training Data (Only works for 2-dimensions)
-latent_points = np.array(latent_points)
 df = pd.DataFrame()
 df['x'] = x
 df['y'] = y
@@ -227,44 +242,40 @@ plt.show()
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using T-SNE and Predicted Latent Points
-x, y, title = TSNE_reduction(latent_points, latent_dimensionality)
+x, y, title = TSNE_reduction(train_latent_points, latent_dimensionality)
 plot_dimensionality_reduction(x, y, box_shape_train, title)
 plt.show()
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA reduced T-SNE and Predicted Latent Points
-x, y, title = PCA_TSNE_reduction(latent_points, latent_dimensionality)
+x, y, title = PCA_TSNE_reduction(train_latent_points, latent_dimensionality)
 plot_dimensionality_reduction(x, y, box_shape_train, title)
 plt.show()
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
 
 
-x1, y1, title1 = PCA_reduction(latent_points, latent_dimensionality)
+x1, y1, title1 = PCA_reduction(train_latent_points, latent_dimensionality)
 x2, y2, title2 = PCA_reduction(latent_matrix, latent_dimensionality)
 
-
-
-print(set(box_shape_train))
-print(np.where(np.array(box_shape_train) == "basic_box"))
 for label in set(box_shape_train):
     print(label)
     cond = np.where(np.array(box_shape_train) == str(label))
-    # print(cond[0])
     plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
+
+
 plt.plot(x2, y2, 'ro-')  # Plot the lines connecting the interpolated latent points
 plt.plot(x2, y2, marker='o', c='red', markersize=8, linestyle='none', label="Predicted Points")
 
 
-plt.legend(numpoints=1)  # np.append(np.array(set(box_shape_train)), 'Predicted_Latent_Points')
+plt.legend(numpoints=1)
 plt.title(title1)
 plt.show()
-# plot_dimensionality_reduction(x, y, np.flipud(all_latent_labels), title)
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points
-x, y, title = PaCMAP_reduction(latent_points, latent_dimensionality)
+x, y, title = PaCMAP_reduction(train_latent_points, latent_dimensionality)
 plot_dimensionality_reduction(x, y, box_shape_train, title)
 
-plot_dimensionality_reduction(x, y, avg_density, title)
 
+plot_dimensionality_reduction(x, y, avg_density, title)
 
