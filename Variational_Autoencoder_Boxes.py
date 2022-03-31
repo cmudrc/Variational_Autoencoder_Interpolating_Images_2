@@ -108,7 +108,7 @@ decoder = tensorflow.keras.layers.UpSampling2D((2, 2))(decoder)
 decoder = tensorflow.keras.layers.Conv2DTranspose(64, (3, 3), activation='relu')(decoder)
 decoder = tensorflow.keras.layers.UpSampling2D((2, 2))(decoder)
 
-decoder_output = tensorflow.keras.layers.Conv2DTranspose(1, (5, 5), activation='relu')(decoder)
+decoder_output = tensorflow.keras.layers.Conv2DTranspose(1, (5, 5), activation='sigmoid')(decoder)
 
 
 decoder_model = tensorflow.keras.Model(decoder_input, decoder_output)
