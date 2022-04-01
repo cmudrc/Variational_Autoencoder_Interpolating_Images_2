@@ -264,6 +264,7 @@ def gradient_3D(array_1, array_2, array_3, filter="sobel"):  # Will determine th
         G_y += scipy.signal.convolve2d(array[i].copy(), filter_y[::-1, ::-1], 'valid')
         G_z += scipy.signal.convolve2d(array[i].copy(), filter_z[::-1, ::-1], 'valid')
 
+    plt.show()
     G = np.sqrt(np.square(G_x) + np.square(G_y) + np.square(G_z))  # Gradient magnitude calculation
     G = 2. * (G - np.min(G)) / np.ptp(G) - 1  # Normalize G between -1 and 1
     return G, G_x, G_y, G_z
@@ -271,26 +272,38 @@ def gradient_3D(array_1, array_2, array_3, filter="sobel"):  # Will determine th
 
 def smoothness(interpolations):
     num_interp = len(interpolations)
-
-    for i in range(0, num_interp):
+    print("max interp")
+    print(np.amax(interpolations))
+    print("min interp")
+    print(np.amin(interpolations))
+    for i in range(0, num_interp):  # Display the current interpolation images
         plt.subplot(1, num_interp, i+1), plt.imshow(interpolations[i], cmap='gray', vmin=0, vmax=1)
 
     G = []
     G_x = []
     G_y = []
     G_z = []
-    gradient_size = len(interpolations[0]) - 2
 
+    for i in range(num_interp - 2):
+        gradients = gradient_3D(interpolations[i], interpolations[i+1], interpolations[i+2])
+        # print(np.amax(gradients[1]))
+        G.append(gradients[0])  # Gradient Magnitude Array
+        G_x.append(gradients[1])  # X-component Gradient
+        G_y.append(gradients[2])
+        G_z.append(gradients[3])
+
+    gradient_vectors = np.array((G_x, G_y, G_z))
+    print("MAX gradient (x,y or z)")
+    print(np.amax(gradient_vectors))
+    gradient_vectors = 2. * (gradient_vectors - np.min(gradient_vectors)) / np.ptp(gradient_vectors) - 1  # Normalize G between -1 and 1
+
+    # Create the point origins of each quiver
+    gradient_size = len(interpolations[0]) - 2
     x = np.arange(0, gradient_size, 1)
     y = np.arange(0, gradient_size, 1)
     z = np.arange(0, num_interp - 2, 1)
     x, y, z = np.meshgrid(x, y, z)
-    for i in range(num_interp - 2):
-        gradients = gradient_3D(interpolations[i], interpolations[i+1], interpolations[i+2])
-        G.append(gradients[0])
-        G_x.append(gradients[1])
-        G_y.append(gradients[2])
-        G_z.append(gradients[3])
+    # Create flattened vectors to plot the Quivers
     G_x_stack = G_x[0]
     G_y_stack = G_y[0]
     G_z_stack = G_z[0]
@@ -298,10 +311,7 @@ def smoothness(interpolations):
         G_x_stack = np.dstack((G_x_stack, G_x[j]))
         G_y_stack = np.dstack((G_y_stack, G_y[j]))
         G_z_stack = np.dstack((G_z_stack, G_z[j]))
-
-    gradient_vectors = np.array((G_x, G_y, G_z))
-    gradient_vectors = 2. * (gradient_vectors - np.min(gradient_vectors)) / np.ptp(gradient_vectors) - 1  # Normalize G between -1 and 1
-
+    # Create Quiver Plot
     ax = plt.figure().add_subplot(projection='3d')
     ax.quiver(x, y, z, G_x_stack, G_y_stack, G_z_stack, color='red', length=0.1, normalize=True)
     plt.show()
@@ -357,11 +367,22 @@ ax.voxels(gradient_test, edgecolor="k", facecolors=cmap(gradient_test))  # , cma
 plt.show()
 
 
+'''
 # DEBUG Test gradient_3D
-array_1 = [[0,0,0], [0,0,0], [0,0,1]]
-array_2 = [[0,0,0], [0,0,1], [0,1,1]]
-array_3 = [[0,0,1], [0,1,1], [1,1,1]]
+# array_1 = [[0,0,0], [0,0,0], [0,0,1]]
+# array_2 = [[0,0,0], [0,0,1], [0,1,1]]
+# array_3 = [[0,0,1], [0,1,1], [1,1,1]]
+
+'''
+array_1 = [[0,0,0], [0,0,0], [1,1,1]]
+array_2 = [[0,0,0], [0,0,0], [1,1,1]]
+array_3 = [[0,0,0], [0,0,0], [1,1,1]]
 
 G, G_x, G_y, G_z = gradient_3D(array_1, array_2, array_3)
+print(G_x, G_y, G_z)
 
+rand_array = np.random.uniform(low=0, high=1, size=(3,3,3))
+print(rand_array)
+G, G_x, G_y, G_z = gradient_3D(rand_array[0], rand_array[1], rand_array[2])
+print(G_x, G_y, G_z)
 '''
