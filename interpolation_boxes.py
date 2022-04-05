@@ -132,7 +132,8 @@ print(np.mean(train_latent_points, axis=0))
 train_mean = np.mean(train_latent_points, axis=0)
 train_std = np.std(train_latent_points, axis=0)
 latent_point_1_std = train_mean # -3*train_std
-for latent_point_2_std in [train_mean+train_std, train_mean+2*train_std, train_mean+3*train_std]: #train_mean-2*train_std, train_mean-train_std, train_mean,
+
+for count, latent_point_2_std in enumerate([train_mean+train_std, train_mean+2*train_std, train_mean+3*train_std]): #train_mean-2*train_std, train_mean-train_std, train_mean,
     latent_matrix_std = []
     for column in range(latent_dimensionality):
         new_column = np.linspace(latent_point_1_std[column], latent_point_2_std[column], num_interp)
@@ -146,7 +147,11 @@ for latent_point_2_std in [train_mean+train_std, train_mean+2*train_std, train_m
         predicted_interps_std.append(generated_image[:, :, -1])
 
     # Determining Smoothness using Gradient
-    smoothness(predicted_interps_std)
+    average_RMSE = smoothness(predicted_interps_std)
+    plt.scatter(count, average_RMSE)
+
+plt.title("RMSE vs Number of Standard Deviations from the Mean")
+plt.show()
 ########################################################################################################################
 # Plotting the Interpolation in 3D
 voxel_interpolation = np.where(np.array(predicted_interps) > 0.1, predicted_interps, 0)
