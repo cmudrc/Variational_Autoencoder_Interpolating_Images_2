@@ -78,7 +78,7 @@ def RMSE_plot(tuple_interpolations, num_interp):
     plt.show()
 
 def vector_RMSE_plot(gradient_vectors, num_interp):
-    avg_coeff_det = []
+    rmse = []
 
     array_1 = [[1, 1, 1], [1, 1, 0], [1, 0, 0]]
     array_2 = [[1, 1, 0], [1, 0, 0], [0, 0, 0]]
@@ -89,16 +89,22 @@ def vector_RMSE_plot(gradient_vectors, num_interp):
     RMSE_max = RMSE_vector(vector1, vector2)
 
     for i in range(num_interp-3):
-        coeff_det = RMSE_vector(gradient_vectors[:, i], gradient_vectors[:, i + 1])/RMSE_max  # normalize the RMSE values returned [0,1]
-        avg_coeff_det.append(coeff_det)
-        plt.scatter(i, coeff_det)
+        rmse_ = RMSE_vector(gradient_vectors[:, i], gradient_vectors[:, i + 1])/RMSE_max  # normalize the RMSE values returned [0,1]
+        rmse.append(rmse_)
+        plt.scatter(i, rmse_)
 
+    average_RMSE = np.average(rmse)
+    standard_deviation_rmse = np.std(rmse)
     plt.xlabel("Set of Interpolation")
     plt.ylabel("RMSE between Gradients")
     plt.title("VECTOR RMSE to Evaluate Smoothness of Interpolations\n Average RMSE Value: "
-              + str(np.average(avg_coeff_det)) + "\nPercent Smoothness: " + str(round(100 - (np.average(avg_coeff_det)*100), 3)) + "%")
+              + str(average_RMSE) + "\nPercent Smoothness: " + str(round(100 - (average_RMSE*100), 3)) + "%"
+              + "\nStandard Deviation of RMSE: " + str(standard_deviation_rmse))
     # plt.ylim(0, 1.1)
+
     plt.show()
+
+    return average_RMSE
 ########################################################################################################################
 # Step functions that output a tuple with arrays of step-wise transitions
 def forward_slash_step(image_size, pixel_step_change):
@@ -334,8 +340,8 @@ def smoothness(interpolations):
     ax.quiver(x, y, z, G_x_stack, G_y_stack, G_z_stack, color='red', length=0.1, normalize=True)
     plt.show()
 
-    vector_RMSE_plot(gradient_vectors, num_interp)
-    return
+    average_RMSE = vector_RMSE_plot(gradient_vectors, num_interp)
+    return average_RMSE
 
 ########################################################################################################################
 '''
