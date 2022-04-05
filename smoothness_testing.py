@@ -79,8 +79,17 @@ def RMSE_plot(tuple_interpolations, num_interp):
 
 def vector_RMSE_plot(gradient_vectors, num_interp):
     avg_coeff_det = []
+
+    array_1 = [[1, 1, 1], [1, 1, 0], [1, 0, 0]]
+    array_2 = [[1, 1, 0], [1, 0, 0], [0, 0, 0]]
+    array_3 = [[0, 0, 0], [0, 0, 1], [0, 1, 1]]
+    array_4 = [[0, 0, 1], [0, 1, 1], [1, 1, 1]]
+    vector1 = gradient_3D(array_1, array_2, array_3)[1:4]
+    vector2 = gradient_3D(array_2, array_3, array_4)[1:4]
+    RMSE_max = RMSE_vector(vector1, vector2)
+
     for i in range(num_interp-3):
-        coeff_det = RMSE_vector(gradient_vectors[:, i], gradient_vectors[:, i + 1])
+        coeff_det = RMSE_vector(gradient_vectors[:, i], gradient_vectors[:, i + 1])/RMSE_max  # normalize the RMSE values returned [0,1]
         avg_coeff_det.append(coeff_det)
         plt.scatter(i, coeff_det)
 
@@ -266,7 +275,14 @@ def gradient_3D(array_1, array_2, array_3, filter="sobel"):  # Will determine th
 
     plt.show()
     G = np.sqrt(np.square(G_x) + np.square(G_y) + np.square(G_z))  # Gradient magnitude calculation
-    G = 2. * (G - np.min(G)) / np.ptp(G) - 1  # Normalize G between -1 and 1
+
+
+    sobel_max = 16
+    sobel_min = -16
+    if filter == "sobel":
+        gradient_max = sobel_max
+        gradient_min = sobel_min
+
     return G, G_x, G_y, G_z
 
 
@@ -295,7 +311,9 @@ def smoothness(interpolations):
     gradient_vectors = np.array((G_x, G_y, G_z))
     print("MAX gradient (x,y or z)")
     print(np.amax(gradient_vectors))
-    gradient_vectors = 2. * (gradient_vectors - np.min(gradient_vectors)) / np.ptp(gradient_vectors) - 1  # Normalize G between -1 and 1
+
+    print("MIN gradient (x,y or z)")
+    print(np.amin(gradient_vectors))
 
     # Create the point origins of each quiver
     gradient_size = len(interpolations[0]) - 2
@@ -373,16 +391,21 @@ plt.show()
 # array_2 = [[0,0,0], [0,0,1], [0,1,1]]
 # array_3 = [[0,0,1], [0,1,1], [1,1,1]]
 
-'''
-array_1 = [[0,0,0], [0,0,0], [1,1,1]]
-array_2 = [[0,0,0], [0,0,0], [1,1,1]]
-array_3 = [[0,0,0], [0,0,0], [1,1,1]]
+array_1 = [[1,1,1], [1,1,0], [1,0,0]]
+array_2 = [[1,1,0], [1,0,0], [0,0,0]]
+array_3 = [[0,0,0], [0,0,1], [0,1,1]]
+array_4 = [[0,0,1], [0,1,1], [1,1,1]]
 
-G, G_x, G_y, G_z = gradient_3D(array_1, array_2, array_3)
-print(G_x, G_y, G_z)
+# array_1 = [[1,1,1], [1,1,1], [1,1,1]]
+# array_2 = [[0,0,0], [0,0,0], [0,0,0]]
+# array_3 = [[0,0,0], [0,0,0], [0,0,0]]
+# array_4 = [[1,1,1], [1,1,1], [1,1,1]]
 
-rand_array = np.random.uniform(low=0, high=1, size=(3,3,3))
-print(rand_array)
-G, G_x, G_y, G_z = gradient_3D(rand_array[0], rand_array[1], rand_array[2])
-print(G_x, G_y, G_z)
-'''
+
+# G, G_x, G_y, G_z = gradient_3D(array_1, array_2, array_3)
+# print(G_x, G_y, G_z)
+
+array = np.array((array_1, array_2, array_3, array_4))
+# rand_array = np.random.uniform(low=0, high=1, size=(3,3,3))
+# print(rand_array)
+smoothness(array)

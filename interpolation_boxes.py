@@ -131,8 +131,8 @@ print(np.mean(train_latent_points, axis=0))
 
 train_mean = np.mean(train_latent_points, axis=0)
 train_std = np.std(train_latent_points, axis=0)
-latent_point_1_std = train_mean-3*train_std
-for latent_point_2_std in [train_mean-2*train_std, train_mean-train_std, train_mean, train_mean+train_std, train_mean+2*train_std, train_mean+3*train_std]:
+latent_point_1_std = train_mean # -3*train_std
+for latent_point_2_std in [train_mean+train_std, train_mean+2*train_std, train_mean+3*train_std]: #train_mean-2*train_std, train_mean-train_std, train_mean,
     latent_matrix_std = []
     for column in range(latent_dimensionality):
         new_column = np.linspace(latent_point_1_std[column], latent_point_2_std[column], num_interp)
