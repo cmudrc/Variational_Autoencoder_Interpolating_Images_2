@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import math
 import scipy
 from scipy import signal
-from mpl_toolkits.mplot3d import Axes3D
+import statistics
+from basic_box_shapes import basic_box
 
 
 image_size = 28
@@ -95,11 +96,13 @@ def vector_RMSE_plot(gradient_vectors, num_interp):
 
     average_RMSE = np.average(rmse)
     standard_deviation_rmse = np.std(rmse)
+    harmonic_average_rmse = statistics.harmonic_mean(np.subtract(1, rmse)*100)
     plt.xlabel("Set of Interpolation")
     plt.ylabel("RMSE between Gradients")
     plt.title("VECTOR RMSE to Evaluate Smoothness of Interpolations\n Average RMSE Value: "
               + str(average_RMSE) + "\nPercent Smoothness: " + str(round(100 - (average_RMSE*100), 3)) + "%"
-              + "\nStandard Deviation of RMSE: " + str(standard_deviation_rmse))
+              + "\nStandard Deviation of RMSE: " + str(standard_deviation_rmse)
+              + "\nHARMONIC Percent Smoothness: " + str(round(harmonic_average_rmse, 3)) + "%")
     # plt.ylim(0, 1.1)
 
     plt.show()
@@ -415,3 +418,10 @@ array = np.array((array_1, array_2, array_3, array_4))
 # rand_array = np.random.uniform(low=0, high=1, size=(3,3,3))
 # print(rand_array)
 smoothness(array)
+print(np.shape(basic_box(0, 1, image_size)))
+print(np.shape(forward_slash_step_density(image_size, pixel_step_change)))
+
+abrupt_change = forward_slash_step_density(image_size, pixel_step_change) # basic_box_array_step_gradient(image_size, pixel_step_change) # np.array()
+abrupt_change[2] = basic_box(0, 1, image_size)
+abrupt_change[8] = basic_box(0, 1, image_size)
+smoothness(abrupt_change)
