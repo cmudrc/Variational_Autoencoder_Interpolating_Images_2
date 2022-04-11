@@ -7,6 +7,7 @@ import scipy
 from scipy import signal
 import statistics
 from basic_box_shapes import basic_box
+from complex_box_shapes import forward_slash_box
 
 
 image_size = 28
@@ -90,87 +91,30 @@ def vector_RMSE_plot(gradient_vectors, num_interp):
     RMSE_max = RMSE_vector(vector1, vector2)
 
     for i in range(num_interp-3):
-        rmse_ = RMSE_vector(gradient_vectors[:, i], gradient_vectors[:, i + 1])/RMSE_max  # normalize the RMSE values returned [0,1]
-        rmse.append(rmse_)
-        plt.scatter(i, rmse_)
+        rmse_ = RMSE_vector(gradient_vectors[:, i], gradient_vectors[:, i + 1])  # normalize the RMSE values returned [0,1]
+        if rmse_ > RMSE_max:
+            print("WARNING: Maximum calculated RMSE is not correct, it has exceeded the predicted maximum of "
+                  + str(RMSE_max) + ". Therefore, the RMSE is not normalized and the smoothness values are incorrect. "
+                                    "\nThe calculated RMSE was " + str(rmse_))
+            exit()  # Users should re-calculate the RMSE maximum possible in order to normalize the data
+        rmse.append(rmse_/RMSE_max)  # normalize using the RMSE maximum
+        plt.scatter(i, rmse[-1])
 
     average_RMSE = np.average(rmse)
     standard_deviation_rmse = np.std(rmse)
-    harmonic_average_rmse = statistics.harmonic_mean(np.subtract(1, rmse)*100)
+    harmonic_average_rmse = statistics.harmonic_mean(np.subtract(1, rmse))  # smaller numbers are weighted more heavily by harmonic mean
+
     plt.xlabel("Set of Interpolation")
     plt.ylabel("RMSE between Gradients")
     plt.title("VECTOR RMSE to Evaluate Smoothness of Interpolations\n Average RMSE Value: "
               + str(average_RMSE) + "\nPercent Smoothness: " + str(round(100 - (average_RMSE*100), 3)) + "%"
               + "\nStandard Deviation of RMSE: " + str(standard_deviation_rmse)
-              + "\nHARMONIC Percent Smoothness: " + str(round(harmonic_average_rmse, 3)) + "%")
+              + "\nHARMONIC Percent Smoothness: " + str(round(harmonic_average_rmse*100, 3)) + "%")
     # plt.ylim(0, 1.1)
 
     plt.show()
 
     return average_RMSE
-########################################################################################################################
-# Step functions that output a tuple with arrays of step-wise transitions
-def forward_slash_step(image_size, pixel_step_change):
-    B = []
-    A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
-    for i in range(image_size):
-        for j in range(image_size):
-            if i == (image_size-1)-j:
-                A[i][j] = 1
-                if (i % pixel_step_change) == 0:
-                    B.append(A.copy())
-    return B
-
-
-def forward_slash_step_density(image_size, pixel_step_change):
-    B = []
-    A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
-    for i in range(image_size):
-        for j in range(image_size):
-            if i == (image_size-1)-j:
-                A[i][j] = 1 * (0.9 ** i)
-                if (i % pixel_step_change) == 0:
-                    B.append(A.copy())
-    return B
-
-
-def hot_dog_array_step(image_size, pixel_step_change):
-    # Places pixels down the vertical axis to split the box
-    B = []
-    A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
-    for i in range(image_size):
-        for j in range(image_size):
-            if j == math.floor((image_size - 1) / 2) or j == math.ceil((image_size - 1) / 2):
-                A[i][j] = 1
-                if (i % pixel_step_change or j % pixel_step_change) == 0:
-                    B.append(A.copy())
-    return B
-
-
-def hot_dog_array_step_density(image_size, pixel_step_change):
-    # Places pixels down the vertical axis to split the box
-    B = []
-    A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
-    for i in range(image_size):
-        for j in range(image_size):
-            if j == math.floor((image_size - 1) / 2) or j == math.ceil((image_size - 1) / 2):
-                A[i][j] = 1 * (0.9 ** i)
-                if (i % pixel_step_change or j % pixel_step_change) == 0:
-                    B.append(A.copy())
-    return B
-
-
-def basic_box_array_step_gradient(image_size, pixel_step_change):
-    B = []
-    A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
-    # Creates the outside edges of the box
-    for i in range(image_size):
-        for j in range(image_size):
-            if i == 0 or j == 0 or i == image_size - 1 or j == image_size - 1:
-                A[i][j] = 1 * (0.9 ** i)
-                if (i % pixel_step_change or j % pixel_step_change) == 0:
-                    B.append(A.copy())
-    return B
 
 
 ########################################################################################################################
@@ -297,10 +241,13 @@ def gradient_3D(array_1, array_2, array_3, filter="sobel"):  # Will determine th
 
 def smoothness(interpolations):
     num_interp = len(interpolations)
-    print("max interp")
-    print(np.amax(interpolations))
-    print("min interp")
-    print(np.amin(interpolations))
+    if np.amax(interpolations) > 1:
+        print("WARNING: The VAE is predicting values larger than 1. These values will lead to errors within the RMSE Maximum calculation")
+        exit()
+    elif np.amin(interpolations) < 0:
+        print("WARNING: The VAE is predicting values less than 0. These values will lead to errors within the RMSE Maximum calculation")
+        exit()
+
     for i in range(0, num_interp):  # Display the current interpolation images
         plt.subplot(1, num_interp, i+1), plt.imshow(interpolations[i], cmap='gray', vmin=0, vmax=1)
 
@@ -311,18 +258,12 @@ def smoothness(interpolations):
 
     for i in range(num_interp - 2):
         gradients = gradient_3D(interpolations[i], interpolations[i+1], interpolations[i+2])
-        # print(np.amax(gradients[1]))
         G.append(gradients[0])  # Gradient Magnitude Array
         G_x.append(gradients[1])  # X-component Gradient
         G_y.append(gradients[2])
         G_z.append(gradients[3])
 
     gradient_vectors = np.array((G_x, G_y, G_z))
-    print("MAX gradient (x,y or z)")
-    print(np.amax(gradient_vectors))
-
-    print("MIN gradient (x,y or z)")
-    print(np.amin(gradient_vectors))
 
     # Create the point origins of each quiver
     gradient_size = len(interpolations[0]) - 2
@@ -345,6 +286,83 @@ def smoothness(interpolations):
 
     average_RMSE = vector_RMSE_plot(gradient_vectors, num_interp)
     return average_RMSE
+
+
+########################################################################################################################
+# Step functions that output a tuple with arrays of step-wise transitions
+def forward_slash_step(image_size, pixel_step_change):
+    B = []
+    A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
+    for i in range(image_size):
+        for j in range(image_size):
+            if i == (image_size-1)-j:
+                A[i][j] = 1
+                if (i % pixel_step_change) == 0:
+                    B.append(A.copy())
+    return B
+
+
+def forward_slash_step_density(image_size, pixel_step_change):
+    B = []
+    A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
+    for i in range(image_size):
+        for j in range(image_size):
+            if i == (image_size-1)-j:
+                A[i][j] = 1 * (0.9 ** i)
+                if (i % pixel_step_change) == 0:
+                    B.append(A.copy())
+    return B
+
+
+def hot_dog_array_step(image_size, pixel_step_change):
+    # Places pixels down the vertical axis to split the box
+    B = []
+    A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
+    for i in range(image_size):
+        for j in range(image_size):
+            if j == math.floor((image_size - 1) / 2) or j == math.ceil((image_size - 1) / 2):
+                A[i][j] = 1
+                if (i % pixel_step_change or j % pixel_step_change) == 0:
+                    B.append(A.copy())
+    return B
+
+
+def hot_dog_array_step_density(image_size, pixel_step_change):
+    # Places pixels down the vertical axis to split the box
+    B = []
+    A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
+    for i in range(image_size):
+        for j in range(image_size):
+            if j == math.floor((image_size - 1) / 2) or j == math.ceil((image_size - 1) / 2):
+                A[i][j] = 1 * (0.9 ** i)
+                if (i % pixel_step_change or j % pixel_step_change) == 0:
+                    B.append(A.copy())
+    return B
+
+
+def basic_box_array_step_gradient(image_size, pixel_step_change):
+    B = []
+    A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
+    # Creates the outside edges of the box
+    for i in range(image_size):
+        for j in range(image_size):
+            if i == 0 or j == 0 or i == image_size - 1 or j == image_size - 1:
+                A[i][j] = 1 * (0.9 ** i)
+                if (i % pixel_step_change or j % pixel_step_change) == 0:
+                    B.append(A.copy())
+    return B
+
+
+def black_to_white_array(image_size):
+    B = []
+    A = np.zeros((int(image_size), int(image_size)))  # Initializes A matrix with 0 values
+    # Creates the outside edges of the box
+    for i in range(image_size):
+        if i%2==0:
+            A[i:i+2][:] = 1
+            B.append(A.copy())
+    return B
+
 
 ########################################################################################################################
 '''
@@ -414,14 +432,23 @@ array_4 = [[0,0,1], [0,1,1], [1,1,1]]
 # G, G_x, G_y, G_z = gradient_3D(array_1, array_2, array_3)
 # print(G_x, G_y, G_z)
 
-array = np.array((array_1, array_2, array_3, array_4))
 # rand_array = np.random.uniform(low=0, high=1, size=(3,3,3))
-# print(rand_array)
-smoothness(array)
-print(np.shape(basic_box(0, 1, image_size)))
-print(np.shape(forward_slash_step_density(image_size, pixel_step_change)))
 
-abrupt_change = forward_slash_step_density(image_size, pixel_step_change) # basic_box_array_step_gradient(image_size, pixel_step_change) # np.array()
-abrupt_change[2] = basic_box(0, 1, image_size)
-abrupt_change[8] = basic_box(0, 1, image_size)
-smoothness(abrupt_change)
+# Black to white then to black test sequence:
+white_2_black = np.flip(black_to_white_array(image_size))
+black_2_white = np.flip(white_2_black)
+test_array = np.concatenate((black_2_white, white_2_black))
+test_array[1], test_array[2], test_array[3], test_array[4] = zeros, zeros, zeros, zeros
+smoothness(test_array)
+
+
+# Random Test Sequence:
+rand_array = np.random.uniform(low=0, high=1, size=(10, 28, 28))
+rand_array[1], rand_array[3], rand_array[5], rand_array[8] = zeros, zeros, zeros, zeros
+smoothness(rand_array)
+
+
+# All Black to All White Arrays
+forward_slash_box_array = forward_slash_box(0, 1, image_size)
+arrays = (forward_slash_box_array, ones, forward_slash_box_array, ones, forward_slash_box_array, ones)
+smoothness(arrays)
