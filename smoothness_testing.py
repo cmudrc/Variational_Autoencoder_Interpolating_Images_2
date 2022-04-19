@@ -413,6 +413,8 @@ plt.show()
 
 
 '''
+
+'''
 # DEBUG Test gradient_3D
 # array_1 = [[0,0,0], [0,0,0], [0,0,1]]
 # array_2 = [[0,0,0], [0,0,1], [0,1,1]]
@@ -431,10 +433,11 @@ array_4 = [[0,0,1], [0,1,1], [1,1,1]]
 
 # G, G_x, G_y, G_z = gradient_3D(array_1, array_2, array_3)
 # print(G_x, G_y, G_z)
+'''
 
-# rand_array = np.random.uniform(low=0, high=1, size=(3,3,3))
 
-# Black to white then to black test sequence:
+'''
+# Testing of Smoothness Evaluation
 white_2_black = np.flip(black_to_white_array(image_size))
 black_2_white = np.flip(white_2_black)
 test_array = np.concatenate((black_2_white, white_2_black))
@@ -452,3 +455,4 @@ smoothness(rand_array)
 forward_slash_box_array = forward_slash_box(0, 1, image_size)
 arrays = (forward_slash_box_array, ones, forward_slash_box_array, ones, forward_slash_box_array, ones)
 smoothness(arrays)
+'''
