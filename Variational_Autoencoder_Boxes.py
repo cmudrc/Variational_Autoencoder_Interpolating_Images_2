@@ -25,7 +25,7 @@ max_density = 1  # (Recommend: 1) The maximum density IS included in the data cr
 # Define the parameters of the Autoencoder
 latent_dimensionality = 4
 early_stopping_patience = 9  # "Number of epochs with no improvement after which training will be stopped." - Keras
-
+epochs = 150
 ########################################################################################################################
 box_data = make_boxes(image_size, number_of_densities, min_density, max_density)
 box_data_train, box_data_test = train_test_split(box_data, test_size=0.15)  # Uses a similar percentage as MNIST Data
@@ -33,7 +33,6 @@ box_data_train, box_data_test = train_test_split(box_data, test_size=0.15)  # Us
 box_matrix_train, box_density_train, additional_pixels_train, box_shape_train = list(zip(*box_data_train))[0], list(zip(*box_data_train))[1], list(zip(*box_data_train))[2], list(zip(*box_data_train))[3]
 box_matrix_test, box_density_test, additional_pixels_test, box_shape_test = list(zip(*box_data_test))[0], list(zip(*box_data_test))[1], list(zip(*box_data_test))[2], list(zip(*box_data_test))[3]
 
-# train_test_split_data = TemporaryFile()
 np.savez_compressed('train_test_split_data', box_matrix_train=box_matrix_train, box_density_train=box_density_train,
                     additional_pixels_train=additional_pixels_train, box_shape_train=box_shape_train,
                     box_matrix_test=box_matrix_test, box_density_test=box_density_test,
@@ -130,7 +129,7 @@ def coeff_determination(y_true, y_pred):  # This function will be used by the au
     return 1 - SS_res/(SS_tot + K.epsilon())
 
 
-def get_loss(distribution_mean, distribution_variance):
+def get_loss(distribution_mean, distribution_variance):  # This function will be used by the autoencoder to return the Loss
     def get_reconstruction_loss(y_true, y_pred):
         reconstruction_loss = tensorflow.keras.losses.mse(y_true, y_pred)
         reconstruction_loss_batch = tensorflow.reduce_mean(reconstruction_loss)
@@ -157,14 +156,15 @@ checkpoint_filepath = 'train_ckpt/cp.ckpt'  # A filepath is defined for the chec
 callback = [tensorflow.keras.callbacks.EarlyStopping(monitor='loss', patience=early_stopping_patience),
             tensorflow.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath, monitor='val_loss', save_best_only=True, save_weights_only=True, mode='min')]
 autoencoder.compile(loss=get_loss(distribution_mean, distribution_variance), optimizer='adam', metrics=[coeff_determination])
-autoencoder_fit = autoencoder.fit(train_data, train_data, epochs=150, batch_size=32, validation_data=(test_data, test_data), callbacks=[callback])
+autoencoder_fit = autoencoder.fit(train_data, train_data, epochs=epochs, batch_size=32, validation_data=(test_data, test_data), callbacks=[callback])
 ########################################################################################################################
-# Plotting the Loss Compared to R^2
+# Plotting the Loss
 plt.plot(autoencoder_fit.history["loss"], label="Training Loss")
 plt.plot(autoencoder_fit.history["val_loss"], label="Validation Loss")
 plt.legend()
 plt.show()
 
+# Plotting the R^2
 plt.plot(autoencoder_fit.history["coeff_determination"], label="Training Coefficient of Determination")
 plt.plot(autoencoder_fit.history["val_coeff_determination"], label="Validation Coefficient of Determination")
 plt.title("Best Training R^2: " + str(max(autoencoder_fit.history["coeff_determination"])) + "\nBest Validation R^2: " + str(max(autoencoder_fit.history["val_coeff_determination"])))
@@ -180,11 +180,10 @@ plt.title("Latent Space Dimensionality: " + str(latent_dimensionality) + "\nBest
           + str(max(autoencoder_fit.history["val_coeff_determination"])) + "\nTotal Epochs: " + str(len(autoencoder_fit.history["coeff_determination"])))
 ax1.set_xlabel('Epochs')
 ax1.set_ylabel('Loss')
-plt.xlim(0, 150)
+plt.xlim(0, epochs)  # Bounding the axis so that they are comparable to other plots
 plt.ylim(0, 150)
 ax1.plot(autoencoder_fit.history["loss"], label="Training Loss", color='blue')
 ax1.plot(autoencoder_fit.history["val_loss"], label="Validation Loss", color='orange')
-# ax1.tick_params(axis='y')
 
 ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
 
@@ -193,7 +192,7 @@ plt.ylim(0, 1.1)
 ax2.plot(autoencoder_fit.history["coeff_determination"], label="Training Coefficient of Determination", color='cornflowerblue')
 ax2.plot(autoencoder_fit.history["val_coeff_determination"], label="Validation Coefficient of Determination", color='moccasin')
 ax2.axhline(y=0.95, color='r', linestyle='-', label="95% Coefficient of Determination")
-# ax2.tick_params(axis='y')
+
 fig.legend()
 fig.tight_layout()  # otherwise the right y-label is slightly clipped
 plt.show()
@@ -209,32 +208,10 @@ with open('model.json', 'w') as json_file:
 # Saving weights of model
 encoder_model_boxes.save_weights('model_tf', save_format='tf')  # tf format
 ########################################################################################################################
-# Model to Generate New Images
-decoder_model.save('decoder_model_boxes')
+# Saving the Decoder Model
+decoder_model.save('decoder_model_boxes')  # Model to Generate New Images
 ########################################################################################################################
 # Prints out the important information about the model
 print("Number of Training Points: " + str(len(trainX)))
 print("Number of Test Points: " + str(len(testX)))
 print("Latent Space Dimensionality: " + str(latent_dimensionality))
-
-
-########################################################################################################################
-# Latent Feature Cluster for Test Data
-x = []
-y = []
-z = []
-for i in range(len(box_shape_test)):
-    z.append(box_shape_test[i])
-    op = encoder_model_boxes.predict(np.array([test_data[i]]))
-    x.append(op[0][0])
-    y.append(op[0][1])
-
-df = pd.DataFrame()
-df['x'] = x
-df['y'] = y
-df['z'] = ["digit-" + str(k) for k in z]
-
-plt.figure(figsize=(8, 6))
-sns.scatterplot(x='x', y='y', hue='z', data=df)
-plt.show()
-########################################################################################################################
