@@ -11,7 +11,7 @@ import gradio as gr
 from sklearn.decomposition import PCA
 from smoothness_testing import euclidean_plot, RMSE_plot, smoothness
 # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-import pacmap  # will need to change numba version: pip install numba==0.53
+
 from Dimensionality_Reduction_Latent_Space import PaCMAP_reduction, PCA_reduction, PCA_TSNE_reduction, TSNE_reduction, plot_dimensionality_reduction
 warnings.filterwarnings('ignore')
 disable_eager_execution()
@@ -40,15 +40,24 @@ testX = box_matrix_test  # Shows the relationship to the MNIST Dataset vs the Sh
 image_size = np.shape(testX)[-1]  # Determines the size of the images
 test_data = np.reshape(testX, (len(testX), image_size, image_size, 1))
 ########################################################################################################################
+# Establishing the Latent Points of the Training Dataset
+train_latent_points = []
+train_data = np.reshape(box_matrix_train, (len(box_matrix_train), image_size, image_size, 1))
+for i in range(len(box_shape_train)):
+    predicted_train = encoder_model_boxes.predict(np.array([train_data[i]]))
+    train_latent_points.append(predicted_train[0])
+train_latent_points = np.array(train_latent_points)
+
+########################################################################################################################
 # Select Latent Points to Interpolate Between
 # USE ONCE TEST DATA IS LARGE ENOUGH
 # Selecting a particular set of boxes for interpolation
 shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "back_slash_box", "forward_slash_box",
-              "back_slash_plus_box", "forward_slash_plus_box", "hot_dog_box", "hamburger_box", "x_hamburger_box",
-              "x_hot_dog_box", "x_plus_box")
+          "back_slash_plus_box", "forward_slash_plus_box", "hot_dog_box", "hamburger_box", "x_hamburger_box",
+          "x_hot_dog_box", "x_plus_box")
 
-box_shape_1 = "x_hot_dog_box"
-box_shape_2 = "basic_box"
+box_shape_1 = "basic_box"
+box_shape_2 = "forward_slash_box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
 indices_1 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_1]
@@ -87,13 +96,13 @@ latent_dimensionality = len(latent_point_1)  # define the dimensionality of the 
 # Establish the Framework for a LINEAR Interpolation
 number_internal = 13  # the number of interpolations that the model will find between two points
 num_interp = number_internal + 2  # the number of images to be pictured
-latent_matrix = []
+latent_matrix = []  # This will contain the latent points of the interpolation
 for column in range(latent_dimensionality):
     new_column = np.linspace(latent_point_1[column], latent_point_2[column], num_interp)
     latent_matrix.append(new_column)
 latent_matrix = np.array(latent_matrix).T  # Transposes the matrix so that each row can be easily indexed
 ########################################################################################################################
-# Plotting the Interpolation in 2D Using Random
+# Plotting the Interpolation in 2D Using Chosen Points
 plot_rows = 2
 plot_columns = num_interp + 2
 
@@ -115,44 +124,43 @@ plt.subplot(plot_rows, plot_columns, num_interp + 2), plt.imshow(testX[number_2]
 plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nPixel Density: " + str(
             box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]))  # + "\nPredicted Latent Point 2: " + str(latent_point_2)
 plt.show()
+
+
 ########################################################################################################################
-# Standard Deviation Smoothness Evaluation
-train_latent_points = []
-train_data = np.reshape(box_matrix_train, (len(box_matrix_train), image_size, image_size, 1))
-for i in range(len(box_shape_train)):
-    predicted_train = encoder_model_boxes.predict(np.array([train_data[i]]))
-    train_latent_points.append(predicted_train[0])
-train_latent_points = np.array(train_latent_points)
+# Smoothness Evaluation based on Standard Deviations from the mean
+run_std = input("Would you like to run standard deviation evaluations? (yes/no)")
 
-print("std")
-print(np.std(train_latent_points, axis=0))
-print("mean")
-print(np.mean(train_latent_points, axis=0))
+if run_std == "yes":
+    print("std")
+    print(np.std(train_latent_points, axis=0))
+    print("mean")
+    print(np.mean(train_latent_points, axis=0))
 
-train_mean = np.mean(train_latent_points, axis=0)
-train_std = np.std(train_latent_points, axis=0)
-latent_point_1_std = train_mean # -3*train_std
+    train_mean = np.mean(train_latent_points, axis=0)
+    train_std = np.std(train_latent_points, axis=0)
 
+    latent_point_1_std = train_mean-3*train_std # starting point of the interpolation
 
-for count, latent_point_2_std in enumerate([train_mean+train_std, train_mean+2*train_std, train_mean+3*train_std]): #train_mean-2*train_std, train_mean-train_std, train_mean,
-    latent_matrix_std = []
-    for column in range(latent_dimensionality):
-        new_column = np.linspace(latent_point_1_std[column], latent_point_2_std[column], num_interp)
-        latent_matrix_std.append(new_column)
-    latent_matrix_std = np.array(latent_matrix_std).T  # Transposes the matrix so that each row can be easily indexed
+    # Currently set to measure a distance of 6 standard deviations
+    for count, latent_point_2_std in enumerate([train_mean-2*train_std, train_mean-train_std, train_mean, train_mean+train_std, train_mean+2*train_std, train_mean+3*train_std]): #
+        latent_matrix_std = []
+        for column in range(latent_dimensionality):
+            new_column = np.linspace(latent_point_1_std[column], latent_point_2_std[column], num_interp)
+            latent_matrix_std.append(new_column)
+        latent_matrix_std = np.array(latent_matrix_std).T  # Transposes the matrix so that each row can be easily indexed
 
-    predicted_interps_std = []  # Used to store the predicted interpolations
-    # Interpolate the Images and Print out to User
-    for latent_point in range(2, num_interp + 2):  # cycles the latent points through the decoder model to create images
-        generated_image = decoder_model_boxes.predict(np.array([latent_matrix_std[latent_point - 2]]))[0]  # generates an interpolated image based on the latent point
-        predicted_interps_std.append(generated_image[:, :, -1])
+        predicted_interps_std = []  # Used to store the predicted interpolations
+        # Interpolate the Images and Print out to User
+        for latent_point in range(2, num_interp + 2):  # cycles the latent points through the decoder model to create images
+            generated_image = decoder_model_boxes.predict(np.array([latent_matrix_std[latent_point - 2]]))[0]  # generates an interpolated image based on the latent point
+            predicted_interps_std.append(generated_image[:, :, -1])
 
-    # Determining Smoothness using Gradient
-    average_RMSE = smoothness(predicted_interps_std)
-    plt.scatter(count, average_RMSE)
+        # Determining Smoothness using Gradient
+        average_RMSE = smoothness(predicted_interps_std)
+        plt.scatter(count, average_RMSE)
 
-plt.title("RMSE vs Number of Standard Deviations from the Mean")
-plt.show()
+    plt.title("RMSE vs Number of Standard Deviations from the Mean")
+    plt.show()
 ########################################################################################################################
 # Plotting the Interpolation in 3D
 voxel_interpolation = np.where(np.array(predicted_interps) > 0.1, predicted_interps, 0)
@@ -174,6 +182,8 @@ plt.show()
 smoothness(predicted_interps)
 ########################################################################################################################
 # Plotting the Euclidean and RMSE Values between each step in the interpolation
+# This was an old approach to determining smoothness
+'''
 euclidean_plot(predicted_interps, num_interp)  # will calculate and plot the euclidean distances between each step in the interpolation
 RMSE_plot(predicted_interps, num_interp)
 
@@ -187,7 +197,7 @@ plt.xlabel("Set of Interpolation")
 plt.ylabel("Difference between Interpolation Pixels")
 plt.title("\nLatent Space Dimensionality: " + str(latent_dimensionality))
 plt.show()
-
+'''
 ########################################################################################################################
 # Use to make an interpolation grid between 4 images
 '''
@@ -272,19 +282,27 @@ plot_dimensionality_reduction(x, y, box_shape_train, title)
 plt.show()
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
+print(np.shape(train_latent_points))
+print(np.shape(latent_matrix))
+train_data_latent_points = np.append(train_latent_points, latent_matrix, axis=0)
+print("Shape of combined points", np.shape(train_data_latent_points))
 
+x1, y1, title1 = PCA_reduction(train_data_latent_points, latent_dimensionality)
+# x2, y2, title2 = PCA_reduction(latent_matrix, latent_dimensionality)
 
-x1, y1, title1 = PCA_reduction(train_latent_points, latent_dimensionality)
-x2, y2, title2 = PCA_reduction(latent_matrix, latent_dimensionality)
+combined_label = box_shape_train
+print(len(latent_matrix))
+for i in range(len(latent_matrix)):
+    combined_label = np.append(combined_label, np.array("Predicted Points"))
+print("Shape of combined label", np.shape(combined_label))
 
-for label in set(box_shape_train):
-    print(label)
-    cond = np.where(np.array(box_shape_train) == str(label))
-    plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
-
-
-plt.plot(x2, y2, 'ro-')  # Plot the lines connecting the interpolated latent points
-plt.plot(x2, y2, marker='o', c='red', markersize=8, linestyle='none', label="Predicted Points")
+for label in set(combined_label):
+    cond = np.where(np.array(combined_label) == str(label))
+    if label == "Predicted Points":
+        plt.plot(x1[cond], y1[cond], marker='o', c='red', markersize=8, linestyle='none', label=label)
+        plt.plot(x1[cond], y1[cond], 'ro-')
+    else:
+        plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
 
 
 plt.legend(numpoints=1)
@@ -297,5 +315,5 @@ x, y, title = PaCMAP_reduction(train_latent_points, latent_dimensionality)
 plot_dimensionality_reduction(x, y, box_shape_train, title)
 
 
-plot_dimensionality_reduction(x, y, avg_density, title)
+plot_dimensionality_reduction(x, y, avg_density, "PaCMAP Reduction: Labeled with Respect to Average Density of Pixels")
 
