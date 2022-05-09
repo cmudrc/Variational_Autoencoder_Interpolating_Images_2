@@ -28,7 +28,7 @@ def PaCMAP_reduction(latent_points, latent_dimensionality, random_state=1):
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
 def PCA_reduction(latent_points, latent_dimensionality, perplexity=7, learning_rate=20):
-    pca = PCA(n_components=2)
+    pca = PCA(n_components=2, random_state=0)
     pca_fit = pca.fit_transform(latent_points)
     # configuring the parameters
     # the number of components = dimension of the embedded space
