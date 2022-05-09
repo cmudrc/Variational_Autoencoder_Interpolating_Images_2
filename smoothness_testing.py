@@ -98,18 +98,21 @@ def vector_RMSE_plot(gradient_vectors, num_interp):
                                     "\nThe calculated RMSE was " + str(rmse_))
             exit()  # Users should re-calculate the RMSE maximum possible in order to normalize the data
         rmse.append(rmse_/RMSE_max)  # normalize using the RMSE maximum
-        plt.scatter(i, rmse[-1])
+        plt.scatter(i, 100 - rmse[-1]*100)
 
     average_RMSE = np.average(rmse)
+    smoothness = np.subtract(100, rmse*100)
+    std_smoothness = np.std(smoothness)
     standard_deviation_rmse = np.std(rmse)
     harmonic_average_rmse = statistics.harmonic_mean(np.subtract(1, rmse))  # smaller numbers are weighted more heavily by harmonic mean
 
     plt.xlabel("Set of Interpolation")
-    plt.ylabel("RMSE between Gradients")
-    plt.title("VECTOR RMSE to Evaluate Smoothness of Interpolations\n Average RMSE Value: "
+    plt.ylabel("Smoothness Between Gradients (%)")
+    plt.title("Smoothness throughout Interpolation\n Average RMSE Value: "
               + str(average_RMSE) + "\nPercent Smoothness: " + str(round(100 - (average_RMSE*100), 3)) + "%"
-              + "\nStandard Deviation of RMSE: " + str(standard_deviation_rmse)
-              + "\nHARMONIC Percent Smoothness: " + str(round(harmonic_average_rmse*100, 3)) + "%")
+              #+ "\nStandard Deviation of RMSE: " + str(standard_deviation_rmse)
+              + "\nStandard Deviation of Smoothness: " + str(std_smoothness))
+              #+ "\nHARMONIC Percent Smoothness: " + str(round(harmonic_average_rmse*100, 3)) + "%")
     # plt.ylim(0, 1.1)
 
     plt.show()
