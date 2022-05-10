@@ -1,18 +1,21 @@
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import tensorflow
 import warnings
 from tensorflow.python.framework.ops import disable_eager_execution
 import seaborn as sns
 import pandas as pd
 from sklearn.manifold import TSNE
+
 import gradio as gr
 from sklearn.decomposition import PCA
 from smoothness_testing import euclidean_plot, RMSE_plot, smoothness
 # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
-from Dimensionality_Reduction_Latent_Space import PaCMAP_reduction, PCA_reduction, PCA_TSNE_reduction, TSNE_reduction, plot_dimensionality_reduction
+from Dimensionality_Reduction_Latent_Space import PaCMAP_reduction, PCA_reduction, PCA_TSNE_reduction, TSNE_reduction, \
+    plot_dimensionality_reduction, PCA_Latent_Image_Proj
 warnings.filterwarnings('ignore')
 disable_eager_execution()
 ########################################################################################################################
@@ -177,6 +180,12 @@ ax.voxels(voxel_interpolation, edgecolor="k", facecolors=cmap(voxel_interpolatio
 
 # Display the plot
 plt.show()
+
+
+########################################################################################################################
+# Create a PCA Plot of the Latent Space with Images Superimposed
+PCA_Latent_Image_Proj(box_matrix_train, image_size, train_latent_points, latent_dimensionality)
+
 ########################################################################################################################
 # Determining Smoothness using Gradient
 smoothness(predicted_interps)
