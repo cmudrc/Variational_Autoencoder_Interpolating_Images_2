@@ -3,9 +3,10 @@ import pacmap  # will need to change numba version: pip install numba==0.53
 import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
-
+import cv2
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP
@@ -114,3 +115,32 @@ def plot_dimensionality_reduction(x, y, label_set, title):
 
     plt.show()
     plt.close()
+########################################################################################################################
+
+# Scatter with images instead of points
+def imscatter(x, y, ax, imageData, image_size, zoom):
+    images = []
+    for i in range(len(x)):
+        x0, y0 = x[i], y[i]
+        # Convert to image
+        img = imageData[i] * 255.
+        img = img.astype(np.uint8).reshape([image_size, image_size])
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        # Note: OpenCV uses BGR and plt uses RGB
+        image = OffsetImage(img, zoom=zoom)
+        ab = AnnotationBbox(image, (x0, y0), xycoords='data', frameon=False)
+        images.append(ax.add_artist(ab))
+
+    ax.update_datalim(np.column_stack([x, y]))
+    ax.autoscale()
+
+
+def PCA_Latent_Image_Proj(image_arrays, image_size,train_latent_points, latent_dimensionality):
+    # Compute t-SNE embedding of latent space
+    print("Computing t-SNE embedding...")
+    x, y, title = PCA_reduction(train_latent_points, latent_dimensionality)
+    # Plot images according to t-sne embedding
+    print("Plotting t-SNE visualization...")
+    fig, ax = plt.subplots()
+    imscatter(x, y, imageData=image_arrays, ax=ax, zoom=0.6, image_size=image_size)
+    plt.show()
