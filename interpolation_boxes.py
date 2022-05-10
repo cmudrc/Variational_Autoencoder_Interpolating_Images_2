@@ -56,8 +56,8 @@ shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "b
           "back_slash_plus_box", "forward_slash_plus_box", "hot_dog_box", "hamburger_box", "x_hamburger_box",
           "x_hot_dog_box", "x_plus_box")
 
-box_shape_1 = "basic_box"
-box_shape_2 = "forward_slash_box"
+box_shape_1 = "forward_slash_box"
+box_shape_2 = "hamburger_box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
 indices_1 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_1]
@@ -94,7 +94,7 @@ latent_point_2 = latent_point_2[0]
 latent_dimensionality = len(latent_point_1)  # define the dimensionality of the latent space
 ########################################################################################################################
 # Establish the Framework for a LINEAR Interpolation
-number_internal = 13  # the number of interpolations that the model will find between two points
+number_internal = 8  # the number of interpolations that the model will find between two points
 num_interp = number_internal + 2  # the number of images to be pictured
 latent_matrix = []  # This will contain the latent points of the interpolation
 for column in range(latent_dimensionality):
@@ -180,6 +180,24 @@ plt.show()
 ########################################################################################################################
 # Determining Smoothness using Gradient
 smoothness(predicted_interps)
+
+########################################################################################################################
+# Restricting the images to binary values
+constrained_predictions = np.reshape(predicted_interps, (np.shape(predicted_interps)[-1] ** 2, len(predicted_interps)))
+
+for i in range(len(constrained_predictions)):
+    constrained_predictions[:][i][np.where(constrained_predictions[:][i] >= abs(box_density_test[number_1] - box_density_test[number_2])/2)] = 1
+    constrained_predictions[:][i][np.where(constrained_predictions[:][i] < abs(box_density_test[number_1] - box_density_test[number_2])/2)] = 0
+
+constrained_predictions = np.reshape(constrained_predictions, (len(predicted_interps), image_size, image_size))
+
+'''
+for i in range(1, num_interp):  # cycles the latent points through the decoder model to create images
+    plt.subplot(plot_rows, plot_columns, i+1), plt.imshow(constrained_predictions[i], cmap='gray', vmin=0, vmax=1)
+plt.show()
+'''
+
+smoothness(constrained_predictions)
 ########################################################################################################################
 # Plotting the Euclidean and RMSE Values between each step in the interpolation
 # This was an old approach to determining smoothness
