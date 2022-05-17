@@ -227,6 +227,59 @@ plt.show()
 '''
 ########################################################################################################################
 # Use to make an interpolation grid between 4 images
+
+tot_image = 0
+num_images_quad = 0
+max_images = 200
+
+while tot_image < max_images:
+    tot_image = (num_images_quad+1) ** latent_dimensionality
+    if tot_image < max_images:
+        num_images_quad += 1
+
+print(num_images_quad)
+
+quad_image_mesh = []
+for i in range(latent_dimensionality):
+    latent_quad = np.linspace(train_latent_points[:, i].min(),train_latent_points[:, i].max(), num=num_images_quad)
+    quad_image_mesh.append(latent_quad)
+
+quad_mesh = np.array(np.meshgrid(*quad_image_mesh, indexing='ij')) # '*' unpacks the mesh
+
+concat = []
+for i in range(latent_dimensionality):
+    concat.append(quad_mesh[i].ravel())
+mesh = np.array(np.c_[concat])
+print(np.shape(mesh))
+
+
+# Grid Interpolation
+generator_model = decoder_model_boxes
+
+image_quad_shape = int(pow(np.shape(mesh)[1], 1/2))
+
+figure = np.zeros((28 * image_quad_shape, 28 * image_quad_shape))
+
+for i in range(image_quad_shape):
+    for j in range(image_quad_shape):
+        generated_image = generator_model.predict(mesh[i+j])[0]
+        figure[i * 28:(i + 1) * 28, j * 28:(j + 1) * 28, ] = generated_image[:, :, -1]
+
+'''
+figure = np.zeros((28 * num_images_quad, 28 * num_images_quad))
+for ix, x in enumerate(x_values):
+    for iy, y in enumerate(y_values):
+        latent_point = np.array([[x, y]])
+        generated_image = generator_model.predict(latent_point)[0]
+        figure[ix * 28:(ix + 1) * 28, iy * 28:(iy + 1) * 28, ] = generated_image[:, :, -1]
+'''
+
+plt.figure(figsize=(15, 15))
+plt.imshow(figure, cmap='gray', extent=[3, -3, 3, -3])
+plt.show()
+
+
+
 '''
 # Grid Interpolation
 generator_model = decoder_model_boxes
@@ -260,8 +313,7 @@ for i in range(len(box_shape_train)):
     x.append(op[0][0])
     y.append(op[0][1])
     avg_density.append(np.average(box_matrix_train[i]))
-print(avg_density[0])
-print(np.shape(avg_density))
+
 ########################################################################################################################
 # Latent Feature Cluster for Training Data (Only works for 2-dimensions)
 df = pd.DataFrame()
@@ -315,7 +367,6 @@ train_data_latent_points = np.append(train_latent_points, latent_matrix, axis=0)
 print("Shape of combined points", np.shape(train_data_latent_points))
 
 x1, y1, title1 = PCA_reduction(train_data_latent_points, latent_dimensionality)
-# x2, y2, title2 = PCA_reduction(latent_matrix, latent_dimensionality)
 
 combined_label = box_shape_train
 print(len(latent_matrix))
