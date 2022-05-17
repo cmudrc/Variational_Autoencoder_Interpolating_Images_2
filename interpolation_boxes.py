@@ -249,20 +249,21 @@ quad_mesh = np.array(np.meshgrid(*quad_image_mesh, indexing='ij')) # '*' unpacks
 concat = []
 for i in range(latent_dimensionality):
     concat.append(quad_mesh[i].ravel())
-mesh = np.array(np.c_[concat])
-print(np.shape(mesh))
+mesh = np.array(np.c_[concat]).T
+print(np.shape(mesh[0]))
 
 
 # Grid Interpolation
 generator_model = decoder_model_boxes
 
-image_quad_shape = int(pow(np.shape(mesh)[1], 1/2))
+image_quad_shape = int(pow(np.shape(mesh)[0], 1/2))
 
 figure = np.zeros((28 * image_quad_shape, 28 * image_quad_shape))
 
-for i in range(image_quad_shape):
-    for j in range(image_quad_shape):
-        generated_image = generator_model.predict(mesh[i+j])[0]
+for j in range(image_quad_shape):
+    for i in range(image_quad_shape):
+        print(np.shape(mesh[i+j]))
+        generated_image = generator_model.predict(np.array([mesh[i+j]]))[0]
         figure[i * 28:(i + 1) * 28, j * 28:(j + 1) * 28, ] = generated_image[:, :, -1]
 
 '''
@@ -275,7 +276,7 @@ for ix, x in enumerate(x_values):
 '''
 
 plt.figure(figsize=(15, 15))
-plt.imshow(figure, cmap='gray', extent=[3, -3, 3, -3])
+plt.imshow(figure, cmap='gray')#, extent=[3, -3, 3, -3])
 plt.show()
 
 
