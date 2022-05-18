@@ -94,13 +94,6 @@ def TSNE_reduction(latent_points, latent_dimensionality, perplexity=30, learning
 
 ########################################################################################################################
 def plot_dimensionality_reduction(x, y, label_set, title):
-    '''
-    df = pd.DataFrame({'label': label_set})  # Acts as a grouping variable to produce points with different colors
-    color_dict = {'Predicted_Latent_Point': 'red', '': 'blue', '': 'black', '': 'green', '': 'purple'}
-    plt.figure(figsize=(8, 6))
-
-    sns.scatterplot(x=x, y=y, hue='label', data=df)
-    '''
     plt.title(title)
     if label_set[0].dtype == float:
         plt.scatter(x, y, c=label_set)
@@ -115,8 +108,9 @@ def plot_dimensionality_reduction(x, y, label_set, title):
 
     plt.show()
     plt.close()
-########################################################################################################################
 
+
+########################################################################################################################
 # Scatter with images instead of points
 def imscatter(x, y, ax, imageData, image_size, zoom):
     images = []
@@ -135,11 +129,41 @@ def imscatter(x, y, ax, imageData, image_size, zoom):
     ax.autoscale()
 
 
-def PCA_Latent_Image_Proj(image_arrays, image_size,train_latent_points, latent_dimensionality):
-    # Compute t-SNE embedding of latent space
-    x, y, title = PCA_reduction(train_latent_points, latent_dimensionality)
-    # Plot images according to t-sne embedding
+# Plot images in latent space with respective reduction method
+def Latent_Image_Proj(image_arrays, image_size,train_latent_points, latent_dimensionality, reduction_function=PCA_reduction):
+    # Compute Reduction embedding of latent space
+    x, y, title = reduction_function(train_latent_points, latent_dimensionality)
+    # Plot images according to reduction embedding
     image_arrays = np.pad(image_arrays, 1, mode='constant')
     fig, ax = plt.subplots()
     imscatter(x, y, imageData=image_arrays, ax=ax, zoom=0.6, image_size=image_size+2)
     plt.show()
+
+
+########################################################################################################################
+def plot_reduction_interpolation(original_data_latent_points, original_data_labels, interpolated_latent_points,
+                                 latent_dimensionality, reduction_function=PCA_reduction, markersize=8, marker_color='red',
+                                 title="Plot of Latent Points with Interpolated Feature", plot_lines=True):
+    train_data_latent_points = np.append(original_data_latent_points, interpolated_latent_points, axis=0)
+    print("Shape of combined points", np.shape(train_data_latent_points))
+
+    x1, y1, title1 = reduction_function(train_data_latent_points, latent_dimensionality)
+
+    combined_label = original_data_labels
+    for i in range(len(interpolated_latent_points)):
+        combined_label = np.append(combined_label, np.array("Predicted Points"))
+
+    for label in set(combined_label):
+        cond = np.where(np.array(combined_label) == str(label))
+        if label == "Predicted Points":
+            plt.plot(x1[cond], y1[cond], marker='o', c=marker_color, markersize=markersize, linestyle='none', label=label)
+            if plot_lines:
+                plt.plot(x1[cond], y1[cond], 'ro-')
+        else:
+            plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
+
+    plt.legend(numpoints=1)
+    plt.title(title)
+    plt.show()
+
+

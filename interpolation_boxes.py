@@ -15,7 +15,7 @@ from smoothness_testing import euclidean_plot, RMSE_plot, smoothness
 # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 from Dimensionality_Reduction_Latent_Space import PaCMAP_reduction, PCA_reduction, PCA_TSNE_reduction, TSNE_reduction, \
-    plot_dimensionality_reduction, PCA_Latent_Image_Proj
+    plot_dimensionality_reduction, Latent_Image_Proj, plot_reduction_interpolation
 warnings.filterwarnings('ignore')
 disable_eager_execution()
 ########################################################################################################################
@@ -192,7 +192,7 @@ plt.show()
 
 ########################################################################################################################
 # Create a PCA Plot of the Latent Space with Images Superimposed
-PCA_Latent_Image_Proj(box_matrix_train, image_size, train_latent_points, latent_dimensionality)
+Latent_Image_Proj(box_matrix_train, image_size, train_latent_points, latent_dimensionality, reduction_function=PCA_reduction)
 
 ########################################################################################################################
 # Determining Smoothness using Gradient
@@ -325,61 +325,17 @@ plot_dimensionality_reduction(x, y, box_shape_train, title)
 plt.show()
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
-print(np.shape(train_latent_points))
-print(np.shape(latent_matrix))
+plot_reduction_interpolation(train_latent_points, box_shape_train, latent_matrix, latent_dimensionality, title="PCA Reduced Latent Space with Visualization of Interpolation")
 
-
-def plot_reduction_interpolation(original_data_latent_points, original_data_labels, interpolated_latent_points, latent_dimensionality, markersize=8):
-    train_data_latent_points = np.append(original_data_latent_points, interpolated_latent_points, axis=0)
-    print("Shape of combined points", np.shape(train_data_latent_points))
-
-    x1, y1, title1 = PCA_reduction(train_data_latent_points, latent_dimensionality)
-
-    combined_label = original_data_labels
-    for i in range(len(interpolated_latent_points)):
-        combined_label = np.append(combined_label, np.array("Predicted Points"))
-
-    for label in set(combined_label):
-        cond = np.where(np.array(combined_label) == str(label))
-        if label == "Predicted Points":
-            plt.plot(x1[cond], y1[cond], marker='o', c='red', markersize=markersize, linestyle='none', label=label)
-            plt.plot(x1[cond], y1[cond], 'ro-')
-        else:
-            plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
-
-    plt.legend(numpoints=1)
-    plt.title(title1)
-    plt.show()
-
-
-plot_reduction_interpolation(train_latent_points, box_shape_train, latent_matrix, latent_dimensionality)
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Grid Latent Points
 
 mesh_flat = np.reshape(mesh, (num_interp**2, latent_dimensionality))
-train_data_latent_grid = np.append(train_latent_points, mesh_flat, axis=0)
-print("Shape of combined points", np.shape(train_data_latent_grid))
+# train_data_latent_grid = np.append(train_latent_points, mesh_flat, axis=0)
 
-x1, y1, title1 = PCA_reduction(train_data_latent_grid, latent_dimensionality)
-
-combined_label = box_shape_train
-print(len(mesh_flat))
-for i in range(len(mesh_flat)):
-    combined_label = np.append(combined_label, np.array("Predicted Points"))
-print("Shape of combined label", np.shape(combined_label))
-
-for label in set(combined_label):
-    cond = np.where(np.array(combined_label) == str(label))
-    if label == "Predicted Points":
-        plt.plot(x1[cond], y1[cond], marker='o', c='red', markersize=9, linestyle='none', label=label)
-        # plt.plot(x1[cond], y1[cond], 'ro-')
-    else:
-        plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
-
-plt.legend(numpoints=1)
-plt.title("PCA Reduction of Mesh Interpolation")
-plt.show()
-
+plot_reduction_interpolation(train_latent_points, box_shape_train, mesh_flat, latent_dimensionality, markersize=10,
+                             marker_color='red',
+                             title="PCA Reduction of Mesh Interpolation", plot_lines=False)
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points
 x, y, title = PaCMAP_reduction(train_latent_points, latent_dimensionality)
