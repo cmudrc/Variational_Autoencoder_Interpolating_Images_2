@@ -59,19 +59,24 @@ shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "b
           "back_slash_plus_box", "forward_slash_plus_box", "hot_dog_box", "hamburger_box", "x_hamburger_box",
           "x_hot_dog_box", "x_plus_box")
 
-box_shape_1 = "forward_slash_box"
-box_shape_2 = "hamburger_box"
+box_shape_1 = "forward_slash_box"  # End points for the 2 point interpolation
+box_shape_2 = "back_slash_plus_box"
+
+box_shape_3 = "basic_box"  # Additional end points to use for grid interpolation
+box_shape_4 = "hot_dog_box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
 indices_1 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_1]
 indices_2 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_2]
 
-print(indices_1)
-print(indices_2)
+indices_3 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_3] # Additional end points to use for grid interpolation
+indices_4 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_4]
 
 # choose a random index
 number_1 = indices_1[0]  # random.choice(indices_1)
 number_2 = indices_2[0]  # random.choice(indices_2)
+number_3 = indices_3[0]
+number_4 = indices_4[0]
 
 '''
 # Use if not enough test data
@@ -87,13 +92,16 @@ number_2 = random.choice(number_2)  # chooses a random index
 number_1_expand = np.expand_dims(number_1, axis=0)
 number_2_expand = np.expand_dims(number_2, axis=0)
 
-# Determine the latent point that will represent our desired number
-latent_point_1 = encoder_model_boxes.predict(test_data[number_1_expand])
-latent_point_2 = encoder_model_boxes.predict(test_data[number_2_expand])
+number_3_expand = np.expand_dims(number_3, axis=0)
+number_4_expand = np.expand_dims(number_4, axis=0)
 
-# Index the latent point as a point rather than an array
-latent_point_1 = latent_point_1[0]
-latent_point_2 = latent_point_2[0]
+# Determine the latent point that will represent our desired number
+latent_point_1 = encoder_model_boxes.predict(test_data[number_1_expand])[0]
+latent_point_2 = encoder_model_boxes.predict(test_data[number_2_expand])[0]
+
+latent_point_3 = encoder_model_boxes.predict(test_data[number_3_expand])[0]
+latent_point_4 = encoder_model_boxes.predict(test_data[number_4_expand])[0]
+
 latent_dimensionality = len(latent_point_1)  # define the dimensionality of the latent space
 ########################################################################################################################
 # Establish the Framework for a LINEAR Interpolation
@@ -228,77 +236,32 @@ plt.show()
 ########################################################################################################################
 # Use to make an interpolation grid between 4 images
 
-tot_image = 0
-num_images_quad = 0
-max_images = 200
+latent_matrix_2 = []  # This will contain the latent points of the interpolation
+for column in range(latent_dimensionality):
+    new_column = np.linspace(latent_point_3[column], latent_point_4[column], num_interp)
+    latent_matrix_2.append(new_column)
+latent_matrix_2 = np.array(latent_matrix_2).T  # Transposes the matrix so that each row can be easily indexed
 
-while tot_image < max_images:
-    tot_image = (num_images_quad+1) ** latent_dimensionality
-    if tot_image < max_images:
-        num_images_quad += 1
+mesh = []  # This will create a mesh by interpolating between the two interpolations
+for column in range(num_interp):
+    row = np.linspace(latent_matrix[column], latent_matrix_2[column], num_interp)
+    # mesh = np.concatenate((mesh, [row]), axis=1)
+    mesh.append(row)
 
-print(num_images_quad)
+mesh = np.transpose(mesh, axes=(1, 0, 2))  # Transpose the array so it matches the original interpolation
 
-quad_image_mesh = []
-for i in range(latent_dimensionality):
-    latent_quad = np.linspace(train_latent_points[:, i].min(),train_latent_points[:, i].max(), num=num_images_quad)
-    quad_image_mesh.append(latent_quad)
-
-quad_mesh = np.array(np.meshgrid(*quad_image_mesh, indexing='ij')) # '*' unpacks the mesh
-
-concat = []
-for i in range(latent_dimensionality):
-    concat.append(quad_mesh[i].ravel())
-mesh = np.array(np.c_[concat]).T
-print(np.shape(mesh[0]))
-
-
-# Grid Interpolation
 generator_model = decoder_model_boxes
 
-image_quad_shape = int(pow(np.shape(mesh)[0], 1/2))
+figure = np.zeros((28 * num_interp, 28 * num_interp))
 
-figure = np.zeros((28 * image_quad_shape, 28 * image_quad_shape))
-
-for j in range(image_quad_shape):
-    for i in range(image_quad_shape):
-        print(np.shape(mesh[i+j]))
-        generated_image = generator_model.predict(np.array([mesh[i+j]]))[0]
+for i in range(num_interp):
+    for j in range(num_interp):
+        generated_image = generator_model.predict(np.array([mesh[i][j]]))[0]
         figure[i * 28:(i + 1) * 28, j * 28:(j + 1) * 28, ] = generated_image[:, :, -1]
-
-'''
-figure = np.zeros((28 * num_images_quad, 28 * num_images_quad))
-for ix, x in enumerate(x_values):
-    for iy, y in enumerate(y_values):
-        latent_point = np.array([[x, y]])
-        generated_image = generator_model.predict(latent_point)[0]
-        figure[ix * 28:(ix + 1) * 28, iy * 28:(iy + 1) * 28, ] = generated_image[:, :, -1]
-'''
 
 plt.figure(figsize=(15, 15))
 plt.imshow(figure, cmap='gray')#, extent=[3, -3, 3, -3])
 plt.show()
-
-
-
-'''
-# Grid Interpolation
-generator_model = decoder_model_boxes
-
-x_values = np.linspace(-3, 3, 30)
-y_values = np.linspace(-3, 3, 30)
-
-figure = np.zeros((28 * 30, 28 * 30))
-for ix, x in enumerate(x_values):
-    for iy, y in enumerate(y_values):
-        latent_point = np.array([[x, y]])
-        generated_image = generator_model.predict(latent_point)[0]
-        figure[ix * 28:(ix + 1) * 28, iy * 28:(iy + 1) * 28, ] = generated_image[:, :, -1]
-
-plt.figure(figsize=(15, 15))
-plt.imshow(figure, cmap='gray', extent=[3, -3, 3, -3])
-plt.show()
-'''
 ########################################################################################################################
 # Preparing the Data to be Plotted
 trainX = box_matrix_train
@@ -364,28 +327,57 @@ plt.show()
 # Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
 print(np.shape(train_latent_points))
 print(np.shape(latent_matrix))
-train_data_latent_points = np.append(train_latent_points, latent_matrix, axis=0)
-print("Shape of combined points", np.shape(train_data_latent_points))
 
-x1, y1, title1 = PCA_reduction(train_data_latent_points, latent_dimensionality)
+
+def plot_reduction_interpolation(original_data_latent_points, original_data_labels, interpolated_latent_points, latent_dimensionality, markersize=8):
+    train_data_latent_points = np.append(original_data_latent_points, interpolated_latent_points, axis=0)
+    print("Shape of combined points", np.shape(train_data_latent_points))
+
+    x1, y1, title1 = PCA_reduction(train_data_latent_points, latent_dimensionality)
+
+    combined_label = original_data_labels
+    for i in range(len(interpolated_latent_points)):
+        combined_label = np.append(combined_label, np.array("Predicted Points"))
+
+    for label in set(combined_label):
+        cond = np.where(np.array(combined_label) == str(label))
+        if label == "Predicted Points":
+            plt.plot(x1[cond], y1[cond], marker='o', c='red', markersize=markersize, linestyle='none', label=label)
+            plt.plot(x1[cond], y1[cond], 'ro-')
+        else:
+            plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
+
+    plt.legend(numpoints=1)
+    plt.title(title1)
+    plt.show()
+
+
+plot_reduction_interpolation(train_latent_points, box_shape_train, latent_matrix, latent_dimensionality)
+########################################################################################################################
+# Latent Feature Cluster for Training Data using PCA and Predicted Grid Latent Points
+
+mesh_flat = np.reshape(mesh, (num_interp**2, latent_dimensionality))
+train_data_latent_grid = np.append(train_latent_points, mesh_flat, axis=0)
+print("Shape of combined points", np.shape(train_data_latent_grid))
+
+x1, y1, title1 = PCA_reduction(train_data_latent_grid, latent_dimensionality)
 
 combined_label = box_shape_train
-print(len(latent_matrix))
-for i in range(len(latent_matrix)):
+print(len(mesh_flat))
+for i in range(len(mesh_flat)):
     combined_label = np.append(combined_label, np.array("Predicted Points"))
 print("Shape of combined label", np.shape(combined_label))
 
 for label in set(combined_label):
     cond = np.where(np.array(combined_label) == str(label))
     if label == "Predicted Points":
-        plt.plot(x1[cond], y1[cond], marker='o', c='red', markersize=8, linestyle='none', label=label)
-        plt.plot(x1[cond], y1[cond], 'ro-')
+        plt.plot(x1[cond], y1[cond], marker='o', c='red', markersize=9, linestyle='none', label=label)
+        # plt.plot(x1[cond], y1[cond], 'ro-')
     else:
         plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
 
-
 plt.legend(numpoints=1)
-plt.title(title1)
+plt.title("PCA Reduction of Mesh Interpolation")
 plt.show()
 
 ########################################################################################################################

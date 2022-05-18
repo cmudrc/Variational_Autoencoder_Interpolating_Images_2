@@ -137,10 +137,9 @@ def imscatter(x, y, ax, imageData, image_size, zoom):
 
 def PCA_Latent_Image_Proj(image_arrays, image_size,train_latent_points, latent_dimensionality):
     # Compute t-SNE embedding of latent space
-    print("Computing t-SNE embedding...")
     x, y, title = PCA_reduction(train_latent_points, latent_dimensionality)
     # Plot images according to t-sne embedding
-    print("Plotting t-SNE visualization...")
+    image_arrays = np.pad(image_arrays, 1, mode='constant')
     fig, ax = plt.subplots()
-    imscatter(x, y, imageData=image_arrays, ax=ax, zoom=0.6, image_size=image_size)
+    imscatter(x, y, imageData=image_arrays, ax=ax, zoom=0.6, image_size=image_size+2)
     plt.show()
