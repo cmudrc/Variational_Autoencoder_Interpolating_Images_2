@@ -101,23 +101,18 @@ def vector_RMSE_plot(gradient_vectors, num_interp):
         plt.scatter(i, 100 - rmse[-1]*100)
 
     average_RMSE = np.average(rmse)
-    smoothness = np.subtract(100, rmse*100)
-    std_smoothness = np.std(smoothness)
-    standard_deviation_rmse = np.std(rmse)
-    harmonic_average_rmse = statistics.harmonic_mean(np.subtract(1, rmse))  # smaller numbers are weighted more heavily by harmonic mean
+    smoothness_average = 100 - (average_RMSE * 100)
+    smoothness_array = np.subtract(100, rmse*100)
+    std_smoothness = np.std(smoothness_array)
 
     plt.xlabel("Set of Interpolation")
     plt.ylabel("Smoothness Between Gradients (%)")
     plt.title("Smoothness throughout Interpolation\n Average RMSE Value: "
-              + str(average_RMSE) + "\nPercent Smoothness: " + str(round(100 - (average_RMSE*100), 3)) + "%"
-              #+ "\nStandard Deviation of RMSE: " + str(standard_deviation_rmse)
+              + str(average_RMSE) + "\nPercent Smoothness: " + str(round(smoothness_average, 3)) + "%"
               + "\nStandard Deviation of Smoothness: " + str(std_smoothness))
-              #+ "\nHARMONIC Percent Smoothness: " + str(round(harmonic_average_rmse*100, 3)) + "%")
-    # plt.ylim(0, 1.1)
-
     plt.show()
 
-    return average_RMSE
+    return smoothness_average, std_smoothness
 
 
 ########################################################################################################################
@@ -252,7 +247,7 @@ def smoothness(interpolations):
         exit()
 
     for i in range(0, num_interp):  # Display the current interpolation images
-        plt.subplot(1, num_interp, i+1), plt.imshow(interpolations[i], cmap='gray', vmin=0, vmax=1)
+        plt.subplot(1, num_interp, i+1), plt.imshow(interpolations[i], cmap='gray', vmin=0, vmax=1), plt.axis('off')
 
     G = []
     G_x = []
@@ -287,8 +282,9 @@ def smoothness(interpolations):
     ax.quiver(x, y, z, G_x_stack, G_y_stack, G_z_stack, color='red', length=0.1, normalize=True)
     plt.show()
 
-    average_RMSE = vector_RMSE_plot(gradient_vectors, num_interp)
-    return average_RMSE
+    average_smoothness, std_smoothness = vector_RMSE_plot(gradient_vectors, num_interp)
+
+    return average_smoothness, std_smoothness
 
 
 ########################################################################################################################
