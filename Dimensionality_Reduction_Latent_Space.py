@@ -142,7 +142,7 @@ def Latent_Image_Proj(image_arrays, image_size,train_latent_points, latent_dimen
 
 ########################################################################################################################
 def plot_reduction_interpolation(original_data_latent_points, original_data_labels, interpolated_latent_points,
-                                 latent_dimensionality, reduction_function=PCA_reduction, markersize=8, marker_color='red',
+                                 latent_dimensionality, image_arrays, image_size, reduction_function=PCA_reduction, markersize=8, marker_color='red',
                                  title="Plot of Latent Points with Interpolated Feature", plot_lines=True):
     train_data_latent_points = np.append(original_data_latent_points, interpolated_latent_points, axis=0)
     print("Shape of combined points", np.shape(train_data_latent_points))
@@ -153,15 +153,38 @@ def plot_reduction_interpolation(original_data_latent_points, original_data_labe
     for i in range(len(interpolated_latent_points)):
         combined_label = np.append(combined_label, np.array("Predicted Points"))
 
+    # Establish plot reduction of images
+    image_arrays = np.pad(image_arrays, 1, mode='constant')
+    fig, ax = plt.subplots()
+
+
+    for label in set(combined_label):
+        cond = np.where(np.array(combined_label) == str(label))
+        if label != "Predicted Points":
+            imscatter(x1[cond], y1[cond], imageData=image_arrays[cond], ax=ax, zoom=0.6, image_size=image_size + 2)
+
     for label in set(combined_label):
         cond = np.where(np.array(combined_label) == str(label))
         if label == "Predicted Points":
-            plt.plot(x1[cond], y1[cond], marker='o', c=marker_color, markersize=markersize, linestyle='none', label=label)
+            ax.plot(x1[cond], y1[cond], marker='o', c=marker_color, markersize=markersize, linestyle='none',
+                     label=label)
             if plot_lines:
-                plt.plot(x1[cond], y1[cond], 'ro-')
-        else:
-            plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
+                ax.plot(x1[cond], y1[cond], 'ro-')
 
+    '''
+    for label in set(combined_label):
+        cond = np.where(np.array(combined_label) == str(label))
+        if label != "Predicted Points":
+            imscatter(x1[cond], y1[cond], imageData=image_arrays[cond], ax=ax, zoom=0.6, image_size=image_size + 2)
+
+        # else:
+        #     plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
+        else:
+            ax.plot(x1[cond], y1[cond], marker='o', c=marker_color, markersize=markersize, linestyle='none',
+                     label=label)
+            if plot_lines:
+                ax.plot(x1[cond], y1[cond], 'ro-')
+    '''
     plt.legend(numpoints=1)
     plt.title(title)
     plt.show()

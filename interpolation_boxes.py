@@ -334,7 +334,9 @@ plot_dimensionality_reduction(x, y, box_shape_train, title)
 plt.show()
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
-plot_reduction_interpolation(train_latent_points, box_shape_train, latent_matrix, latent_dimensionality, title="PCA Reduced Latent Space with Visualization of Interpolation")
+plot_reduction_interpolation(train_latent_points, box_shape_train, latent_matrix, latent_dimensionality,
+                             image_size=image_size, image_arrays=box_matrix_train,
+                             title="PCA Reduced Latent Space with Visualization of Interpolation")
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Grid Latent Points
@@ -342,7 +344,8 @@ plot_reduction_interpolation(train_latent_points, box_shape_train, latent_matrix
 mesh_flat = np.reshape(mesh, (num_interp**2, latent_dimensionality))
 # train_data_latent_grid = np.append(train_latent_points, mesh_flat, axis=0)
 
-plot_reduction_interpolation(train_latent_points, box_shape_train, mesh_flat, latent_dimensionality, markersize=10,
+plot_reduction_interpolation(train_latent_points, box_shape_train, mesh_flat, latent_dimensionality,
+                             image_size=image_size, image_arrays=box_matrix_train, markersize=10,
                              marker_color='red',
                              title="PCA Reduction of Mesh Interpolation", plot_lines=False)
 ########################################################################################################################
