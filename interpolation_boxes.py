@@ -105,7 +105,7 @@ latent_point_4 = encoder_model_boxes.predict(test_data[number_4_expand])[0]
 latent_dimensionality = len(latent_point_1)  # define the dimensionality of the latent space
 ########################################################################################################################
 # Establish the Framework for a LINEAR Interpolation
-number_internal = 8  # the number of interpolations that the model will find between two points
+number_internal = 3  # the number of interpolations that the model will find between two points
 num_interp = number_internal + 2  # the number of images to be pictured
 latent_matrix = []  # This will contain the latent points of the interpolation
 for column in range(latent_dimensionality):
@@ -153,6 +153,9 @@ if run_std == "yes":
     latent_point_1_std = train_mean-3*train_std # starting point of the interpolation
 
     # Currently set to measure a distance of 6 standard deviations
+    count_array = []
+    yerr = []
+    smoothness_array = []
     for count, latent_point_2_std in enumerate([train_mean-2*train_std, train_mean-train_std, train_mean, train_mean+train_std, train_mean+2*train_std, train_mean+3*train_std]): #
         latent_matrix_std = []
         for column in range(latent_dimensionality):
@@ -167,10 +170,16 @@ if run_std == "yes":
             predicted_interps_std.append(generated_image[:, :, -1])
 
         # Determining Smoothness using Gradient
-        average_RMSE = smoothness(predicted_interps_std)
-        plt.scatter(count, average_RMSE)
+        smoothness_average, smoothness_std = smoothness(predicted_interps_std)
 
-    plt.title("RMSE vs Number of Standard Deviations from the Mean")
+        count_array.append(count+1)
+        smoothness_array.append(smoothness_average)
+        yerr.append(smoothness_std)
+        # plt.scatter(count, smoothness_average)
+    plt.scatter(count_array, smoothness_array)
+    plt.xlabel("Number of Standard Deviations from the Mean")
+    plt.ylabel("Smoothness (%)")
+    plt.ylim([60, 100])
     plt.show()
 ########################################################################################################################
 # Plotting the Interpolation in 3D
