@@ -157,34 +157,18 @@ def plot_reduction_interpolation(original_data_latent_points, original_data_labe
     image_arrays = np.pad(image_arrays, 1, mode='constant')
     fig, ax = plt.subplots()
 
-
+    # Sort and plot the points and images into the latent space
     for label in set(combined_label):
         cond = np.where(np.array(combined_label) == str(label))
         if label != "Predicted Points":
             imscatter(x1[cond], y1[cond], imageData=image_arrays[cond], ax=ax, zoom=0.6, image_size=image_size + 2)
 
-    for label in set(combined_label):
-        cond = np.where(np.array(combined_label) == str(label))
-        if label == "Predicted Points":
-            ax.plot(x1[cond], y1[cond], marker='o', c=marker_color, markersize=markersize, linestyle='none',
-                     label=label)
-            if plot_lines:
-                ax.plot(x1[cond], y1[cond], 'ro-')
-
-    '''
-    for label in set(combined_label):
-        cond = np.where(np.array(combined_label) == str(label))
-        if label != "Predicted Points":
-            imscatter(x1[cond], y1[cond], imageData=image_arrays[cond], ax=ax, zoom=0.6, image_size=image_size + 2)
-
-        # else:
-        #     plt.plot(x1[cond], y1[cond], marker='o', linestyle='none', label=label)
         else:
             ax.plot(x1[cond], y1[cond], marker='o', c=marker_color, markersize=markersize, linestyle='none',
-                     label=label)
+                    label=label, zorder=10)
             if plot_lines:
-                ax.plot(x1[cond], y1[cond], 'ro-')
-    '''
+                ax.plot(x1[cond], y1[cond], 'ro-', zorder=10)
+
     plt.legend(numpoints=1)
     plt.title(title)
     plt.show()

@@ -59,7 +59,7 @@ shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "b
           "back_slash_plus_box", "forward_slash_plus_box", "hot_dog_box", "hamburger_box", "x_hamburger_box",
           "x_hot_dog_box", "x_plus_box")
 
-box_shape_1 = "forward_slash_box"  # End points for the 2 point interpolation
+box_shape_1 = "diagonal_box_split"  # End points for the 2 point interpolation
 box_shape_2 = "back_slash_plus_box"
 
 box_shape_3 = "basic_box"  # Additional end points to use for grid interpolation
@@ -105,7 +105,7 @@ latent_point_4 = encoder_model_boxes.predict(test_data[number_4_expand])[0]
 latent_dimensionality = len(latent_point_1)  # define the dimensionality of the latent space
 ########################################################################################################################
 # Establish the Framework for a LINEAR Interpolation
-number_internal = 3  # the number of interpolations that the model will find between two points
+number_internal = 8  # the number of interpolations that the model will find between two points
 num_interp = number_internal + 2  # the number of images to be pictured
 latent_matrix = []  # This will contain the latent points of the interpolation
 for column in range(latent_dimensionality):
@@ -269,7 +269,7 @@ for i in range(num_interp):
         figure[i * 28:(i + 1) * 28, j * 28:(j + 1) * 28, ] = generated_image[:, :, -1]
 
 plt.figure(figsize=(15, 15))
-plt.imshow(figure, cmap='gray')#, extent=[3, -3, 3, -3])
+plt.imshow(figure, cmap='gray')
 plt.show()
 ########################################################################################################################
 # Preparing the Data to be Plotted
@@ -345,7 +345,7 @@ mesh_flat = np.reshape(mesh, (num_interp**2, latent_dimensionality))
 # train_data_latent_grid = np.append(train_latent_points, mesh_flat, axis=0)
 
 plot_reduction_interpolation(train_latent_points, box_shape_train, mesh_flat, latent_dimensionality,
-                             image_size=image_size, image_arrays=box_matrix_train, markersize=10,
+                             image_size=image_size, image_arrays=box_matrix_train, markersize=8,
                              marker_color='red',
                              title="PCA Reduction of Mesh Interpolation", plot_lines=False)
 ########################################################################################################################
