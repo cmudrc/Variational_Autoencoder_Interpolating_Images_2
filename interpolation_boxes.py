@@ -8,7 +8,7 @@ from tensorflow.python.framework.ops import disable_eager_execution
 import seaborn as sns
 import pandas as pd
 from sklearn.manifold import TSNE
-
+from sklearn.linear_model import LinearRegression
 import gradio as gr
 from sklearn.decomposition import PCA
 from smoothness_testing import euclidean_plot, RMSE_plot, smoothness
@@ -59,10 +59,10 @@ shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "b
           "back_slash_plus_box", "forward_slash_plus_box", "hot_dog_box", "hamburger_box", "x_hamburger_box",
           "x_hot_dog_box", "x_plus_box")
 
-box_shape_1 = "diagonal_box_split"  # End points for the 2 point interpolation
-box_shape_2 = "back_slash_plus_box"
+box_shape_1 = "basic_box"# End points for the 2 point interpolation
+box_shape_2 = "diagonal_box_split"  #"back_slash_plus_box"
 
-box_shape_3 = "basic_box"  # Additional end points to use for grid interpolation
+box_shape_3 = "forward_slash_plus_box"  # Additional end points to use for grid interpolation
 box_shape_4 = "hot_dog_box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
@@ -153,34 +153,72 @@ if run_std == "yes":
     latent_point_1_std = train_mean-3*train_std # starting point of the interpolation
 
     # Currently set to measure a distance of 6 standard deviations
-    count_array = []
-    yerr = []
+
     smoothness_array = []
-    for count, latent_point_2_std in enumerate([train_mean-2*train_std, train_mean-train_std, train_mean, train_mean+train_std, train_mean+2*train_std, train_mean+3*train_std]): #
-        latent_matrix_std = []
-        for column in range(latent_dimensionality):
-            new_column = np.linspace(latent_point_1_std[column], latent_point_2_std[column], num_interp)
-            latent_matrix_std.append(new_column)
-        latent_matrix_std = np.array(latent_matrix_std).T  # Transposes the matrix so that each row can be easily indexed
+    num_std = []
+    interp_length = []
 
-        predicted_interps_std = []  # Used to store the predicted interpolations
-        # Interpolate the Images and Print out to User
-        for latent_point in range(2, num_interp + 2):  # cycles the latent points through the decoder model to create images
-            generated_image = decoder_model_boxes.predict(np.array([latent_matrix_std[latent_point - 2]]))[0]  # generates an interpolated image based on the latent point
-            predicted_interps_std.append(generated_image[:, :, -1])
+    for test_distance_interps in [5, 10, 15]:
+        count_array = []
+        smoothness_percent = []
+        for count, latent_point_2_std in enumerate([train_mean-2*train_std, train_mean-train_std, train_mean, train_mean+train_std, train_mean+2*train_std, train_mean+3*train_std]): #
 
-        # Determining Smoothness using Gradient
-        smoothness_average, smoothness_std = smoothness(predicted_interps_std)
+            latent_matrix_std = []
+            for column in range(latent_dimensionality):
+                new_column = np.linspace(latent_point_1_std[column], latent_point_2_std[column], test_distance_interps)
+                latent_matrix_std.append(new_column)
+            latent_matrix_std = np.array(latent_matrix_std).T  # Transposes the matrix so that each row can be easily indexed
 
-        count_array.append(count+1)
-        smoothness_array.append(smoothness_average)
-        yerr.append(smoothness_std)
-        # plt.scatter(count, smoothness_average)
-    plt.scatter(count_array, smoothness_array)
-    plt.xlabel("Number of Standard Deviations from the Mean")
-    plt.ylabel("Smoothness (%)")
-    plt.ylim([60, 100])
-    plt.show()
+            predicted_interps_std = []  # Used to store the predicted interpolations
+            # Interpolate the Images and Print out to User
+            for latent_point in range(2, test_distance_interps + 2):  # cycles the latent points through the decoder model to create images
+                generated_image = decoder_model_boxes.predict(np.array([latent_matrix_std[latent_point - 2]]))[0]  # generates an interpolated image based on the latent point
+                predicted_interps_std.append(generated_image[:, :, -1])
+
+            # Determining Smoothness using Gradient
+            smoothness_average, smoothness_std = smoothness(predicted_interps_std)
+
+            count_array.append(count+1)
+            smoothness_percent.append(smoothness_average)
+
+            smoothness_array.append(smoothness_average)
+            num_std.append(count + 1)
+            interp_length.append(test_distance_interps)
+
+        plt.scatter(count_array, smoothness_percent)
+        plt.xlabel("Number of Standard Deviations from the Mean")
+        plt.ylabel("Smoothness (%)")
+        plt.ylim([60, 100])
+        plt.show()
+    OLS_array = np.column_stack((num_std, interp_length, np.multiply(num_std, interp_length)))
+
+    Y = smoothness_array
+
+    # reg = LinearRegression().fit(OLS_array, Y)
+    # reg.score(OLS_array, Y)
+
+    distance_std = np.linalg.norm(train_std)
+    distance_original_interp = np.linalg.norm(np.subtract(latent_point_1, latent_point_2))
+    print("Distance between latent points")
+    print(distance_original_interp)
+
+    original_num_std = distance_original_interp/distance_std
+
+
+    # reg.predict((original_num_std, num_interp, original_num_std*num_interp))
+
+    import statsmodels.api as sm
+
+    OLS_array = sm.add_constant(OLS_array)
+    print("OLS")
+    print(OLS_array)
+
+    mod = sm.OLS(Y, OLS_array).fit()
+    # fii = mod.fit()
+    print(mod.summary(yname='Smoothness (%)', xname=['Constant:','Number of Standard Deviations:', 'Transition Length:', 'Cross-Term:']))
+    original_array = np.array([1, original_num_std, num_interp, original_num_std*num_interp])
+    print(original_array)
+    print(mod.predict(original_array))
 ########################################################################################################################
 # Plotting the Interpolation in 3D
 voxel_interpolation = np.where(np.array(predicted_interps) > 0.1, predicted_interps, 0)
@@ -205,7 +243,7 @@ Latent_Image_Proj(box_matrix_train, image_size, train_latent_points, latent_dime
 
 ########################################################################################################################
 # Determining Smoothness using Gradient
-smoothness(predicted_interps)
+smoothness(predicted_interps, plot=True)
 
 ########################################################################################################################
 # Restricting the images to binary values
