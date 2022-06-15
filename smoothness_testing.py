@@ -79,7 +79,7 @@ def RMSE_plot(tuple_interpolations, num_interp):
     plt.ylim(0, 1.1)
     plt.show()
 
-def vector_RMSE_plot(gradient_vectors, num_interp):
+def vector_RMSE_plot(gradient_vectors, num_interp, plot=False):
     rmse = []
 
     array_1 = [[1, 1, 1], [1, 1, 0], [1, 0, 0]]
@@ -98,19 +98,21 @@ def vector_RMSE_plot(gradient_vectors, num_interp):
                                     "\nThe calculated RMSE was " + str(rmse_))
             exit()  # Users should re-calculate the RMSE maximum possible in order to normalize the data
         rmse.append(rmse_/RMSE_max)  # normalize using the RMSE maximum
-        plt.scatter(i, 100 - rmse[-1]*100)
+        if plot:
+            plt.scatter(i, 100 - rmse[-1]*100)
 
     average_RMSE = np.average(rmse)
     smoothness_average = 100 - (average_RMSE * 100)
     smoothness_array = np.subtract(100, rmse*100)
     std_smoothness = np.std(smoothness_array)
 
-    plt.xlabel("Set of Interpolation")
-    plt.ylabel("Smoothness Between Gradients (%)")
-    plt.title("Smoothness throughout Interpolation\n Average RMSE Value: "
-              + str(average_RMSE) + "\nPercent Smoothness: " + str(round(smoothness_average, 3)) + "%"
-              + "\nStandard Deviation of Smoothness: " + str(std_smoothness))
-    plt.show()
+    if plot:
+        plt.xlabel("Set of Interpolation")
+        plt.ylabel("Smoothness Between Gradients (%)")
+        plt.title("Smoothness throughout Interpolation\n Average RMSE Value: "
+                  + str(average_RMSE) + "\nPercent Smoothness: " + str(round(smoothness_average, 3)) + "%"
+                  + "\nStandard Deviation of Smoothness: " + str(std_smoothness))
+        plt.show()
 
     return smoothness_average, std_smoothness
 
@@ -224,7 +226,7 @@ def gradient_3D(array_1, array_2, array_3, filter="sobel"):  # Will determine th
         G_y += scipy.signal.convolve2d(array[i].copy(), filter_y[::-1, ::-1], 'valid')
         G_z += scipy.signal.convolve2d(array[i].copy(), filter_z[::-1, ::-1], 'valid')
 
-    plt.show()
+    # plt.show()
     G = np.sqrt(np.square(G_x) + np.square(G_y) + np.square(G_z))  # Gradient magnitude calculation
 
 
@@ -237,7 +239,7 @@ def gradient_3D(array_1, array_2, array_3, filter="sobel"):  # Will determine th
     return G, G_x, G_y, G_z
 
 
-def smoothness(interpolations):
+def smoothness(interpolations, plot=False):
     num_interp = len(interpolations)
     if np.amax(interpolations) > 1:
         print("WARNING: The VAE is predicting values larger than 1. These values will lead to errors within the RMSE Maximum calculation")
@@ -245,9 +247,10 @@ def smoothness(interpolations):
     elif np.amin(interpolations) < 0:
         print("WARNING: The VAE is predicting values less than 0. These values will lead to errors within the RMSE Maximum calculation")
         exit()
-
-    for i in range(0, num_interp):  # Display the current interpolation images
-        plt.subplot(1, num_interp, i+1), plt.imshow(interpolations[i], cmap='gray', vmin=0, vmax=1), plt.axis('off')
+    if plot:
+        for i in range(0, num_interp):  # Display the current interpolation images
+            plt.subplot(1, num_interp, i+1), plt.imshow(interpolations[i], cmap='gray', vmin=0, vmax=1), plt.axis('off')
+        plt.show()
 
     G = []
     G_x = []
@@ -278,11 +281,12 @@ def smoothness(interpolations):
         G_y_stack = np.dstack((G_y_stack, G_y[j]))
         G_z_stack = np.dstack((G_z_stack, G_z[j]))
     # Create Quiver Plot
-    ax = plt.figure().add_subplot(projection='3d')
-    ax.quiver(x, y, z, G_x_stack, G_y_stack, G_z_stack, color='red', length=0.1, normalize=True)
-    plt.show()
+    if plot:
+        ax = plt.figure().add_subplot(projection='3d')
+        ax.quiver(x, y, z, G_x_stack, G_y_stack, G_z_stack, color='red', length=0.1, normalize=True)
+        plt.show()
 
-    average_smoothness, std_smoothness = vector_RMSE_plot(gradient_vectors, num_interp)
+    average_smoothness, std_smoothness = vector_RMSE_plot(gradient_vectors, num_interp, plot=plot)
 
     return average_smoothness, std_smoothness
 
