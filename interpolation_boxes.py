@@ -59,10 +59,10 @@ shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "b
           "back_slash_plus_box", "forward_slash_plus_box", "hot_dog_box", "hamburger_box", "x_hamburger_box",
           "x_hot_dog_box", "x_plus_box")
 
-box_shape_1 = "basic_box"# End points for the 2 point interpolation
-box_shape_2 = "diagonal_box_split"  #"back_slash_plus_box"
+box_shape_1 = "basic_box" # End points for the 2 point interpolation
+box_shape_2 = "horizontal_vertical_box_split"  #"back_slash_plus_box"
 
-box_shape_3 = "forward_slash_plus_box"  # Additional end points to use for grid interpolation
+box_shape_3 = "basic_box" #"forward_slash_plus_box"  # Additional end points to use for grid interpolation
 box_shape_4 = "hot_dog_box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
@@ -128,7 +128,7 @@ for latent_point in range(2, num_interp + 2):  # cycles the latent points throug
     generated_image = decoder_model_boxes.predict(np.array([latent_matrix[latent_point - 2]]))[0]  # generates an interpolated image based on the latent point
     predicted_interps.append(generated_image[:, :, -1])
     plt.subplot(plot_rows, plot_columns, latent_point), plt.imshow(generated_image[:, :, -1], cmap='gray', vmin=0, vmax=1)
-    plt.axis('off')
+    # plt.axis('off')
 
 # Plot the Second Interpolation Point
 plt.subplot(plot_rows, plot_columns, num_interp + 2), plt.imshow(testX[number_2], cmap='gray', vmin=0, vmax=1)
@@ -176,7 +176,7 @@ if run_std == "yes":
                 predicted_interps_std.append(generated_image[:, :, -1])
 
             # Determining Smoothness using Gradient
-            smoothness_average, smoothness_std = smoothness(predicted_interps_std)
+            smoothness_average, smoothness_std = smoothness(predicted_interps_std, plot=False)
 
             count_array.append(count+1)
             smoothness_percent.append(smoothness_average)
@@ -186,8 +186,10 @@ if run_std == "yes":
             interp_length.append(test_distance_interps)
 
         plt.scatter(count_array, smoothness_percent)
-        plt.xlabel("Number of Standard Deviations from the Mean")
-        plt.ylabel("Smoothness (%)")
+        plt.xlabel("Number of Standard Deviations from the Mean", fontsize=16)
+        plt.ylabel("Smoothness (%)", fontsize=16)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
         plt.ylim([60, 100])
         plt.show()
     OLS_array = np.column_stack((num_std, interp_length, np.multiply(num_std, interp_length)))
@@ -214,7 +216,6 @@ if run_std == "yes":
     print(OLS_array)
 
     mod = sm.OLS(Y, OLS_array).fit()
-    # fii = mod.fit()
     print(mod.summary(yname='Smoothness (%)', xname=['Constant:','Number of Standard Deviations:', 'Transition Length:', 'Cross-Term:']))
     original_array = np.array([1, original_num_std, num_interp, original_num_std*num_interp])
     print(original_array)
@@ -241,6 +242,7 @@ plt.show()
 # Create a PCA Plot of the Latent Space with Images Superimposed
 Latent_Image_Proj(box_matrix_train, image_size, train_latent_points, latent_dimensionality, reduction_function=PCA_reduction)
 
+Latent_Image_Proj(box_matrix_train, image_size,train_latent_points, latent_dimensionality, reduction_function=PaCMAP_reduction)
 ########################################################################################################################
 # Determining Smoothness using Gradient
 smoothness(predicted_interps, plot=True)

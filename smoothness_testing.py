@@ -249,7 +249,7 @@ def smoothness(interpolations, plot=False):
         exit()
     if plot:
         for i in range(0, num_interp):  # Display the current interpolation images
-            plt.subplot(1, num_interp, i+1), plt.imshow(interpolations[i], cmap='gray', vmin=0, vmax=1), plt.axis('off')
+            plt.subplot(1, num_interp, i+1), plt.imshow(interpolations[i], cmap='gray', vmin=0, vmax=1)
         plt.show()
 
     G = []
