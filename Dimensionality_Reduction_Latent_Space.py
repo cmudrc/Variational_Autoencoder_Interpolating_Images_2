@@ -137,13 +137,14 @@ def Latent_Image_Proj(image_arrays, image_size,train_latent_points, latent_dimen
     image_arrays = np.pad(image_arrays, 1, mode='constant')
     fig, ax = plt.subplots()
     imscatter(x, y, imageData=image_arrays, ax=ax, zoom=0.6, image_size=image_size+2)
+    plt.title(title)
     plt.show()
 
 
 ########################################################################################################################
 def plot_reduction_interpolation(original_data_latent_points, original_data_labels, interpolated_latent_points,
                                  latent_dimensionality, image_arrays, image_size, reduction_function=PCA_reduction, markersize=8, marker_color='red',
-                                 title="Plot of Latent Points with Interpolated Feature", plot_lines=True):
+                                 title="Plot of Latent Points with Interpolated Feature", plot_lines=True, plot_points=True):
     train_data_latent_points = np.append(original_data_latent_points, interpolated_latent_points, axis=0)
     print("Shape of combined points", np.shape(train_data_latent_points))
 
@@ -164,8 +165,9 @@ def plot_reduction_interpolation(original_data_latent_points, original_data_labe
             imscatter(x1[cond], y1[cond], imageData=image_arrays[cond], ax=ax, zoom=0.6, image_size=image_size + 2)
 
         else:
-            ax.plot(x1[cond], y1[cond], marker='o', c=marker_color, markersize=markersize, linestyle='none',
-                    label=label, zorder=10)
+            if plot_points is True:
+                ax.plot(x1[cond], y1[cond], marker='o', c=marker_color, markersize=markersize, linestyle='none',
+                        label=label, zorder=10)
             if plot_lines:
                 ax.plot(x1[cond], y1[cond], 'ro-', zorder=10)
 

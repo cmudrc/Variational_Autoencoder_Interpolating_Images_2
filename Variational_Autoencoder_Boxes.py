@@ -178,20 +178,23 @@ plt.show()
 fig, ax1 = plt.subplots()
 plt.title("Latent Space Dimensionality: " + str(latent_dimensionality) + "\nBest Training R^2: " + str(max(autoencoder_fit.history["coeff_determination"])) + "\nBest Validation R^2: "
           + str(max(autoencoder_fit.history["val_coeff_determination"])) + "\nTotal Epochs: " + str(len(autoencoder_fit.history["coeff_determination"])))
-ax1.set_xlabel('Epochs')
-ax1.set_ylabel('Loss')
+ax1.set_xlabel('Epochs', fontsize=14)
+ax1.set_ylabel('Loss', fontsize=14)
 plt.xlim(0, epochs)  # Bounding the axis so that they are comparable to other plots
 plt.ylim(0, 150)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
 ax1.plot(autoencoder_fit.history["loss"], label="Training Loss", color='blue')
 ax1.plot(autoencoder_fit.history["val_loss"], label="Validation Loss", color='orange')
 
 ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
 
-ax2.set_ylabel('Coefficient of Determination')  # we already handled the x-label with ax1
+ax2.set_ylabel('Coefficient of Determination', fontsize=14)  # we already handled the x-label with ax1
 plt.ylim(0, 1.1)
 ax2.plot(autoencoder_fit.history["coeff_determination"], label="Training Coefficient of Determination", color='cornflowerblue')
 ax2.plot(autoencoder_fit.history["val_coeff_determination"], label="Validation Coefficient of Determination", color='moccasin')
 ax2.axhline(y=0.95, color='r', linestyle='-', label="95% Coefficient of Determination")
+plt.yticks(fontsize=14)
 
 fig.legend()
 fig.tight_layout()  # otherwise the right y-label is slightly clipped

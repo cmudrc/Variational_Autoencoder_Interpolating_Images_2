@@ -228,7 +228,11 @@ def gradient_3D(array_1, array_2, array_3, filter="sobel"):  # Will determine th
 
     # plt.show()
     G = np.sqrt(np.square(G_x) + np.square(G_y) + np.square(G_z))  # Gradient magnitude calculation
-
+    # print("Sobel filter")
+    # print(G)
+    # plt.imshow(G, cmap='gray', vmin=0, vmax=16)
+    # plt.title("Sobel Filter Images")
+    # plt.show()
 
     sobel_max = 16
     sobel_min = -16

@@ -29,7 +29,7 @@ test_data = np.reshape(test_data, (10000, 28, 28, 1))
 ########################################################################################################################
 # Selecting a particular set of numbers of interpolation
 number_1 = 0
-number_2 = 3
+number_2 = 7
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
 indices_1 = [i for i in range(len(testy)) if testy[i] == number_1]
@@ -43,6 +43,9 @@ number_2 = random.choice(indices_2)
 number_1_expand = np.expand_dims(number_1, axis=0)
 number_2_expand = np.expand_dims(number_2, axis=0)
 
+latent_point_1 = encoder_model.predict(test_data[number_1_expand])[0]
+latent_point_2 = encoder_model.predict(test_data[number_2_expand])[0]
+
 # Determine the latent point that will represent our desired number
 xy1 = encoder_model.predict(test_data[number_1_expand])
 xy2 = encoder_model.predict(test_data[number_2_expand])
@@ -54,7 +57,7 @@ print(xy1)
 print(xy2)
 ########################################################################################################################
 # Establish the Framework of the Interpolation
-number_internal = 13  # the number of interpolations that the model will find between two points
+number_internal = 3  # the number of interpolations that the model will find between two points
 num_interp = number_internal + 2  # the number of images to be pictured
 figure = np.zeros((28, 28 * num_interp))  # The matrix that will hold the pixel values of the images
 #xy1 = [0, -3]  # Latent Point 1
@@ -67,6 +70,32 @@ y_values = np.linspace(xy1[1], xy2[1], num_interp) # Interpolates the values of 
 print("Linspace Y")
 #print(y_values)
 #Add z values
+
+########################################################################################################################
+latent_matrix = []  # This will contain the latent points of the interpolation
+for column in range(latent_dimensionality):
+    new_column = np.linspace(latent_point_1[column], latent_point_2[column], num_interp)
+    latent_matrix.append(new_column)
+latent_matrix = np.array(latent_matrix).T  # Transposes the matrix so that each row can be easily indexed
+
+plot_rows = 2
+plot_columns = num_interp + 2
+
+# Plot the First Interpolation Point
+plt.subplot(plot_rows, plot_columns, 1), plt.imshow(testX[number_1], cmap='gray', vmin=0, vmax=1)
+
+predicted_interps = []  # Used to store the predicted interpolations
+# Interpolate the Images and Print out to User
+for latent_point in range(2, num_interp + 2):  # cycles the latent points through the decoder model to create images
+    generated_image = decoder_model.predict(np.array([latent_matrix[latent_point - 2]]))[0]  # generates an interpolated image based on the latent point
+    predicted_interps.append(generated_image[:, :, -1])
+    plt.subplot(plot_rows, plot_columns, latent_point), plt.imshow(generated_image[:, :, -1], cmap='gray', vmin=0, vmax=1)
+    plt.axis('off')
+
+# Plot the Second Interpolation Point
+plt.subplot(plot_rows, plot_columns, num_interp + 2), plt.imshow(testX[number_2], cmap='gray', vmin=0, vmax=1)
+
+plt.show()
 ########################################################################################################################
 # Interpolate the Images and Print out to User
 print('Latent Points')
