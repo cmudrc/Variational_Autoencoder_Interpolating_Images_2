@@ -59,11 +59,11 @@ shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "b
           "back_slash_plus_box", "forward_slash_plus_box", "hot_dog_box", "hamburger_box", "x_hamburger_box",
           "x_hot_dog_box", "x_plus_box")
 
-box_shape_1 = "basic_box" # End points for the 2 point interpolation
-box_shape_2 = "horizontal_vertical_box_split"  #"back_slash_plus_box"
+box_shape_1 = "hot_dog_box"   # End points for the 2 point interpolation
+box_shape_2 = "x_hamburger_box"
 
-box_shape_3 = "basic_box" #"forward_slash_plus_box"  # Additional end points to use for grid interpolation
-box_shape_4 = "hot_dog_box"
+box_shape_3 = "diagonal_box_split"  # Additional end points to use for grid interpolation
+box_shape_4 = "x_plus_box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
 indices_1 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_1]
@@ -176,7 +176,7 @@ if run_std == "yes":
                 predicted_interps_std.append(generated_image[:, :, -1])
 
             # Determining Smoothness using Gradient
-            smoothness_average, smoothness_std = smoothness(predicted_interps_std, plot=False)
+            smoothness_average, smoothness_std = smoothness(predicted_interps_std, plot=True)
 
             count_array.append(count+1)
             smoothness_percent.append(smoothness_average)
@@ -388,6 +388,11 @@ plot_reduction_interpolation(train_latent_points, box_shape_train, mesh_flat, la
                              image_size=image_size, image_arrays=box_matrix_train, markersize=8,
                              marker_color='red',
                              title="PCA Reduction of Mesh Interpolation", plot_lines=False)
+
+plot_reduction_interpolation(train_latent_points, box_shape_train, mesh_flat, latent_dimensionality,
+                             image_size=image_size, image_arrays=box_matrix_train, markersize=8,
+                             marker_color='red',
+                             title="PCA Reduction of Mesh Interpolation", plot_lines=False, plot_points=False)
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points
 x, y, title = PaCMAP_reduction(train_latent_points, latent_dimensionality)
