@@ -9,11 +9,12 @@ import seaborn as sns
 import pandas as pd
 from sklearn.manifold import TSNE
 from sklearn.linear_model import LinearRegression
-import gradio as gr
+# import gradio as gr
 from sklearn.decomposition import PCA
 from smoothness_testing import euclidean_plot, RMSE_plot, smoothness
 # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
+#HELLO
 from Dimensionality_Reduction_Latent_Space import PaCMAP_reduction, PCA_reduction, PCA_TSNE_reduction, TSNE_reduction, \
     plot_dimensionality_reduction, Latent_Image_Proj, plot_reduction_interpolation
 warnings.filterwarnings('ignore')
@@ -21,7 +22,8 @@ disable_eager_execution()
 ########################################################################################################################
 # Import the Models created by the VAE
 # import the decoder model
-decoder_model_boxes = tensorflow.keras.models.load_model('decoder_model_boxes')
+decoder_model_boxes = tensorflow.keras.models.load_model('decoder_model_boxes', compile=False)
+# compile=False ignores a warning from tensorflow, can be removed to see warning
 
 # import the encoder model architecture
 json_file_loaded = open('model.json', 'r')
@@ -176,7 +178,7 @@ if run_std == "yes":
                 predicted_interps_std.append(generated_image[:, :, -1])
 
             # Determining Smoothness using Gradient
-            smoothness_average, smoothness_std = smoothness(predicted_interps_std, plot=True)
+            smoothness_average, smoothness_std = smoothness(predicted_interps_std, plot=False)
 
             count_array.append(count+1)
             smoothness_percent.append(smoothness_average)
@@ -188,6 +190,7 @@ if run_std == "yes":
         plt.scatter(count_array, smoothness_percent)
         plt.xlabel("Number of Standard Deviations from the Mean", fontsize=16)
         plt.ylabel("Smoothness (%)", fontsize=16)
+        plt.title("Number of Transition Points: " + str(test_distance_interps), fontsize=16)
         plt.xticks(fontsize=14)
         plt.yticks(fontsize=14)
         plt.ylim([60, 100])
@@ -204,21 +207,22 @@ if run_std == "yes":
     print("Distance between latent points")
     print(distance_original_interp)
 
-    original_num_std = distance_original_interp/distance_std
-
-
-    # reg.predict((original_num_std, num_interp, original_num_std*num_interp))
+        # reg.predict((original_num_std, num_interp, original_num_std*num_interp))
 
     import statsmodels.api as sm
 
     OLS_array = sm.add_constant(OLS_array)
     print("OLS")
-    print(OLS_array)
+    print(Y, OLS_array)
 
     mod = sm.OLS(Y, OLS_array).fit()
     print(mod.summary(yname='Smoothness (%)', xname=['Constant:','Number of Standard Deviations:', 'Transition Length:', 'Cross-Term:']))
+
+    # Testing the Prediction of the Model
+    original_num_std = distance_original_interp / distance_std
     original_array = np.array([1, original_num_std, num_interp, original_num_std*num_interp])
     print(original_array)
+    print("Smoothness Prediction: ")
     print(mod.predict(original_array))
 ########################################################################################################################
 # Plotting the Interpolation in 3D
