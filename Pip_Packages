@@ -1,0 +1,21 @@
+# List of pip installation packages
+
+pip install numpy
+
+python -m pip install -U matplotlib
+
+pip install tensorflow
+
+pip install -U scikit-learn
+
+pip install seaborn
+
+pip install opencv-python
+
+
+#COMPLETE IN ORDER
+# Download build tools from:
+# https://visualstudio.microsoft.com/visual-cpp-build-tools/
+
+pip install numba==0.53
+pip install pacmap
