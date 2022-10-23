@@ -14,7 +14,6 @@ from sklearn.decomposition import PCA
 from smoothness_testing import euclidean_plot, RMSE_plot, smoothness
 # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
-#HELLO
 from Dimensionality_Reduction_Latent_Space import PaCMAP_reduction, PCA_reduction, PCA_TSNE_reduction, TSNE_reduction, \
     plot_dimensionality_reduction, Latent_Image_Proj, plot_reduction_interpolation
 warnings.filterwarnings('ignore')

@@ -1,7 +1,7 @@
 import numpy as np
 import pacmap  # will need to change numba version: pip install numba==0.53
-import seaborn as sns
-import pandas as pd
+# import seaborn as sns
+# import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from sklearn.manifold import TSNE
@@ -14,7 +14,7 @@ def PaCMAP_reduction(latent_points, latent_dimensionality, random_state=1):
     # initializing the pacmap instance
     X = latent_points
 
-    embedding = pacmap.PaCMAP(n_dims=2, n_neighbors=None, MN_ratio=0.5, FP_ratio=2.0, random_state=random_state)
+    embedding = pacmap.PaCMAP(n_components=2, n_neighbors=None, MN_ratio=0.5, FP_ratio=2.0, random_state=random_state)
 
     # fit the data (The index of transformed data corresponds to the index of the original data)
     X_transformed = embedding.fit_transform(X, init="pca")

@@ -11,6 +11,7 @@ from complex_box_shapes import forward_slash_box
 
 
 image_size = 28
+
 pixel_step_change = 2  # the number of pixels that will be added in between each step
 
 zeros = np.zeros((image_size, image_size))
