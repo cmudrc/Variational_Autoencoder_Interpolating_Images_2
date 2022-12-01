@@ -15,7 +15,7 @@ from smoothness_testing import euclidean_plot, RMSE_plot, smoothness
 # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 from Dimensionality_Reduction_Latent_Space import PaCMAP_reduction, PCA_reduction, PCA_TSNE_reduction, TSNE_reduction, \
-    plot_dimensionality_reduction, Latent_Image_Proj, plot_reduction_interpolation
+    plot_dimensionality_reduction, Latent_Image_Proj, plot_reduction_interpolation, plot_interpolation_smoothness
 warnings.filterwarnings('ignore')
 disable_eager_execution()
 ########################################################################################################################
@@ -301,19 +301,29 @@ for column in range(num_interp):
     mesh.append(row)
 
 mesh = np.transpose(mesh, axes=(1, 0, 2))  # Transpose the array so it matches the original interpolation
-
 generator_model = decoder_model_boxes
 
 figure = np.zeros((28 * num_interp, 28 * num_interp))
 
+mesh_predicted_interps = []
 for i in range(num_interp):
     for j in range(num_interp):
         generated_image = generator_model.predict(np.array([mesh[i][j]]))[0]
         figure[i * 28:(i + 1) * 28, j * 28:(j + 1) * 28, ] = generated_image[:, :, -1]
+        mesh_predicted_interps.append(generated_image[:, :, -1])
 
-plt.figure(figsize=(15, 15))
-plt.imshow(figure, cmap='gray')
-plt.show()
+
+
+# for row in (0,3,5,9):
+#     plt.imshow(np.concatenate(mesh_predicted_interps[row,:], axis=1), cmap='gray')
+#     plt.show()
+#
+#
+# for col in (0,3,5,9):
+#     plt.imshow(np.concatenate(mesh_predicted_interps[:,col], axis=0), cmap='gray')
+#     plt.show()
+
+'''
 ########################################################################################################################
 # Preparing the Data to be Plotted
 trainX = box_matrix_train
@@ -380,7 +390,7 @@ plt.show()
 plot_reduction_interpolation(train_latent_points, box_shape_train, latent_matrix, latent_dimensionality,
                              image_size=image_size, image_arrays=box_matrix_train,
                              title="PCA Reduced Latent Space with Visualization of Interpolation")
-
+'''
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Grid Latent Points
 
@@ -396,6 +406,12 @@ plot_reduction_interpolation(train_latent_points, box_shape_train, mesh_flat, la
                              image_size=image_size, image_arrays=box_matrix_train, markersize=8,
                              marker_color='red',
                              title="PCA Reduction of Mesh Interpolation", plot_lines=False, plot_points=False)
+
+plot_interpolation_smoothness(train_latent_points, box_shape_train, mesh_flat, mesh_predicted_interps, latent_dimensionality,
+                             image_size=image_size, number_of_interpolations=num_interp,image_arrays=box_matrix_train, markersize=8,
+                             marker_color='red',
+                             title="PCA Reduction of Mesh Interpolation", plot_lines=False, plot_points=False)
+
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points
 x, y, title = PaCMAP_reduction(train_latent_points, latent_dimensionality)

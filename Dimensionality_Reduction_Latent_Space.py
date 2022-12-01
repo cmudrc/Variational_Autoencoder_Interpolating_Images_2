@@ -3,9 +3,11 @@ import pacmap  # will need to change numba version: pip install numba==0.53
 # import seaborn as sns
 # import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.pylab as pl
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
+from smoothness_testing import smoothness
 import cv2
 
 ########################################################################################################################
@@ -176,3 +178,78 @@ def plot_reduction_interpolation(original_data_latent_points, original_data_labe
     plt.show()
 
 
+########################################################################################################################
+def plot_interpolation_smoothness(original_data_latent_points, original_data_labels, interpolated_latent_points, mesh_predicted_interps,
+                                 latent_dimensionality, image_arrays, image_size, number_of_interpolations, reduction_function=PCA_reduction, markersize=8, marker_color='red',
+                                 title="Plot of Latent Points with Interpolated Feature", plot_lines=True, plot_points=True, interp_type="mesh"):
+
+
+    train_data_latent_points = np.append(original_data_latent_points, interpolated_latent_points, axis=0)
+    print("Shape of combined points", np.shape(train_data_latent_points))
+
+
+    if interp_type == "mesh":
+        mesh_predicted_interps = np.reshape(mesh_predicted_interps, (
+        number_of_interpolations, number_of_interpolations, image_size, image_size)) # reshape so that the images can be indexed by row/column
+        smoothness_line = []
+        count = []
+        # for row in range(np.shape(mesh_predicted_interps)[0]):
+        #     count.append(row)
+        #     interpolation = mesh_predicted_interps[row, :]
+        #     smoothness_line.append(smoothness(interpolation)[0]) # adds the average smoothness to our array
+        #
+        for col in range(np.shape(mesh_predicted_interps)[1]):
+            count.append(col)
+            interpolation = mesh_predicted_interps[:, col]
+            smoothness_line.append(smoothness(interpolation)[0])  # adds the average smoothness to our array
+        plt.scatter(count, smoothness_line)
+        plt.xlabel("col", fontsize=16)
+        plt.ylabel("Smoothness (%)", fontsize=16)
+        plt.title("Smoothness over mesh ", fontsize=16)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.ylim([60, 100])
+        plt.show()
+    #add column
+    # interpolated_latent_points[:, col]
+
+    x1, y1, title1 = reduction_function(train_data_latent_points, latent_dimensionality)
+
+    combined_label = original_data_labels
+    for i in range(len(interpolated_latent_points)):
+        combined_label = np.append(combined_label, np.array("Predicted Points"))
+
+    # Establish plot reduction of images
+    image_arrays = np.pad(image_arrays, 1, mode='constant')
+    fig, ax = plt.subplots()
+
+    # Sort and plot the points and images into the latent space
+    for label in set(combined_label):
+        cond = np.where(np.array(combined_label) == str(label))
+        if label != "Predicted Points":
+            imscatter(x1[cond], y1[cond], imageData=image_arrays[cond], ax=ax, zoom=0.6, image_size=image_size + 2)
+
+        else:
+            if plot_points is True:
+                ax.plot(x1[cond], y1[cond], marker='o', c=marker_color, markersize=markersize, linestyle='none',
+                        label=label, zorder=10)
+            if plot_lines:
+                ax.plot(x1[cond], y1[cond], 'ro-', zorder=10)
+
+    interpolation_cords_x = x1[-np.shape(interpolated_latent_points)[0]:]  # coordinates of the interpolation points (ordered)
+    interpolation_cords_x = np.reshape(interpolation_cords_x, (np.shape(mesh_predicted_interps)[0], np.shape(mesh_predicted_interps)[1]))
+
+    interpolation_cords_y = x1[-np.shape(interpolated_latent_points)[0]:]  # coordinates of the interpolation points (ordered)
+    interpolation_cords_y = np.reshape(interpolation_cords_y, (np.shape(mesh_predicted_interps)[0], np.shape(mesh_predicted_interps)[1]))
+
+    colors = pl.cm.jet(np.linspace(0, 1, np.shape(mesh_predicted_interps)[0]+np.shape(mesh_predicted_interps)[1]))
+
+    for row in range(np.shape(interpolation_cords_x)[0]):
+        ax.plot([interpolation_cords_x[row,0], interpolation_cords_x[row,-1]], [interpolation_cords_y[row,0],interpolation_cords_y[row,-1]], color = colors[row], zorder=10)
+        # pl.plot(, , color = colors[row], zorder=10)
+    # for col in range(np.shape(interpolation_cords_x)[1]):
+
+
+    plt.legend(numpoints=1)
+    plt.title(title)
+    plt.show()
