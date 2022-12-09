@@ -61,7 +61,7 @@ shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "b
           "x_hot_dog_box", "x_plus_box")
 
 box_shape_1 = "hot_dog_box"   # End points for the 2 point interpolation
-box_shape_2 = "x_hamburger_box"
+box_shape_2 = "forward_slash_plus_box"
 
 box_shape_3 = "diagonal_box_split"  # Additional end points to use for grid interpolation
 box_shape_4 = "x_plus_box"
@@ -297,7 +297,6 @@ latent_matrix_2 = np.array(latent_matrix_2).T  # Transposes the matrix so that e
 mesh = []  # This will create a mesh by interpolating between the two interpolations
 for column in range(num_interp):
     row = np.linspace(latent_matrix[column], latent_matrix_2[column], num_interp)
-    # mesh = np.concatenate((mesh, [row]), axis=1)
     mesh.append(row)
 
 mesh = np.transpose(mesh, axes=(1, 0, 2))  # Transpose the array so it matches the original interpolation
@@ -312,6 +311,10 @@ for i in range(num_interp):
         figure[i * 28:(i + 1) * 28, j * 28:(j + 1) * 28, ] = generated_image[:, :, -1]
         mesh_predicted_interps.append(generated_image[:, :, -1])
 
+plt.title("Mesh Plot")
+plt.figure(figsize=(15, 15))
+plt.imshow(figure, cmap='autumn')
+plt.show()
 
 
 # for row in (0,3,5,9):
@@ -323,7 +326,7 @@ for i in range(num_interp):
 #     plt.imshow(np.concatenate(mesh_predicted_interps[:,col], axis=0), cmap='gray')
 #     plt.show()
 
-'''
+
 ########################################################################################################################
 # Preparing the Data to be Plotted
 trainX = box_matrix_train
@@ -390,7 +393,7 @@ plt.show()
 plot_reduction_interpolation(train_latent_points, box_shape_train, latent_matrix, latent_dimensionality,
                              image_size=image_size, image_arrays=box_matrix_train,
                              title="PCA Reduced Latent Space with Visualization of Interpolation")
-'''
+
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Grid Latent Points
 
