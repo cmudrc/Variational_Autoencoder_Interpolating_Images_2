@@ -220,8 +220,6 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
         plt.yticks(fontsize=14)
         plt.ylim([60, 100])
         plt.show()
-    #add column
-    # interpolated_latent_points[:, col]
 
     x1, y1, title1 = reduction_function(train_data_latent_points, latent_dimensionality)
 
@@ -236,64 +234,80 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
     # Sort and plot the points and images into the latent space
     for label in set(combined_label):
         cond = np.where(np.array(combined_label) == str(label))
-        if label != "Predicted Points":
+        if label != "Predicted Points":  # Plots the images
             imscatter(x1[cond], y1[cond], imageData=image_arrays[cond], ax=ax, zoom=0.6, image_size=image_size + 2)
 
         else:
-            # print("x , y")
-            if plot_points is True:
+            if plot_points is True: # Plots the predicted points
                 ax.plot(x1[cond], y1[cond], marker='o', c=marker_color, markersize=markersize, linestyle='none',
                         label=label, zorder=5)
                 # print(x1[cond], y1[cond])
             if plot_lines:
                 ax.plot(x1[cond], y1[cond], 'ro-', zorder=10)
 
+    # Pull Coordinates from PCA Reduction
     interpolation_cords_x = x1[-np.shape(interpolated_latent_points)[0]:]  # coordinates of the interpolation points (ordered)
     interpolation_cords_x = np.reshape(interpolation_cords_x, (np.shape(mesh_predicted_interps)[0], np.shape(mesh_predicted_interps)[1]))
 
     interpolation_cords_y = y1[-np.shape(interpolated_latent_points)[0]:]  # coordinates of the interpolation points (ordered)
     interpolation_cords_y = np.reshape(interpolation_cords_y, (np.shape(mesh_predicted_interps)[0], np.shape(mesh_predicted_interps)[1]))
 
-    # colors = pl.cm.jet(np.linspace(0, 1, 20)) # np.shape(mesh_predicted_interps)[0]+np.shape(mesh_predicted_interps)[1]))
-    # print(np.shape(colors))
-    # print(colors)
-    # print(type(colors))
-    # print(interpolation_cords_y)
-    # print("x, y")
+    # Create Line Segments
     row_lines = []
     for row in range(np.shape(interpolation_cords_x)[0]):
         row_lines.append([(interpolation_cords_x[row,0], interpolation_cords_y[row,0]), (interpolation_cords_x[row,-1], interpolation_cords_y[row,-1])])
 
-    # viridis = cm.get_cmap('viridis', 12)
-    viridis = matplotlib.colormaps['viridis']
     smoothness_line_row = np.array(smoothness_line_row) / 100
-    # norm = matplotlib.colors.Normalize(vmin=min(smoothness_line_row), vmax=1)
-    norm = matplotlib.colors.Normalize(vmin=.8, vmax=1)
-    print("First smooothness value",smoothness_line_row[0])
-    print("Norm of first smoothness value",norm(smoothness_line_row[0]))
-    print(smoothness_line_row)
 
-    line_segment_rows = LineCollection(row_lines, colors=viridis(norm(smoothness_line_row)), linestyles='solid', zorder=20)
-    # line_segment_rows = LineCollection(row_lines, colors=viridis(smoothness_line_row), linestyles='solid', zorder=20)
-
-    ax.add_collection(line_segment_rows)
-    fig = plt.gcf()
-    cbar = fig.colorbar(line_segment_rows, ticks = [0, viridis(norm(min(smoothness_line_row))),1])
-    cbar.set_label('Smoothness (%)')
-    # cbar.ax.set_yticklabels([str(round((min(smoothness_line_row)*100),2)), '100'])  # vertically oriented colorbar
-    cbar.ax.set_yticklabels(['80',str(round(min(smoothness_line_row)*100,2)) ,'100'])  # vertically oriented colorbar
-    ax.set_title('Line Collection with mapped colors')
-    # plt.clim(vmin=min(smoothness_line_row), vmax=100)
-    ax.autoscale()
-        # print("x", interpolation_cords_x[row,0], interpolation_cords_x[row,-1])
-        # print("y", interpolation_cords_y[row,0],interpolation_cords_y[row,-1])
-        # ax1.plot([interpolation_cords_x[row,0], interpolation_cords_x[row,-1]], [interpolation_cords_y[row,0],interpolation_cords_y[row,-1]], color=np.where(colors == smoothness_line_row[row]/100), zorder=10, label="Smoothness of Rows")
-        # plt.colorbar()
-
-
-
-    # for col in range(np.shape(interpolation_cords_x)[1]):
-
+    # # Setup Colorbar Color, Min and Max
+    # viridis = matplotlib.colormaps['viridis']  # A function that returns the color value of a number (0-1)
+    # color_bar_min = 90  # Minimum value on the color bar
+    # color_bar_max = 100
+    # norm = matplotlib.colors.Normalize(vmin=color_bar_min/100, vmax=color_bar_max/100)  # A function to normalize values between a desired min and max
+    #
+    # # Plot the Line segments
+    # line_segment_rows = LineCollection(row_lines, colors=viridis(norm(smoothness_line_row)), linestyles='solid', zorder=20)
+    # ax.add_collection(line_segment_rows)
+    # fig = plt.gcf()
+    #
+    # # Color bar settings for Line Segments
+    # cbar = fig.colorbar(line_segment_rows, ticks=[0, norm(min(smoothness_line_row)),1]) # Locations of labels on Color Bar
+    # cbar.set_label('Smoothness (%)')
+    # cbar.ax.set_yticklabels([str(color_bar_min),str(round(min(smoothness_line_row)*100,2)),'100'])  # Labels on Color Bar
+    # ax.autoscale()
+    plot_line_segments(row_lines, smoothness_line_row, ax) # function that
     plt.legend(numpoints=1)
     plt.title(title)
     plt.show()
+
+
+########################################################################################################################
+def plot_line_segments(segments,smoothness_of_segment, ax):
+    # Segments - list of line coordinates
+    # Smoothness of Segment - the smoothness of the images over the segment
+    # ax - the predefined axis that is being used to plot the data
+
+    # Setup Colorbar Color, Min and Max
+    viridis = matplotlib.colormaps['viridis']  # A function that returns the color value of a number (0-1)
+    color_bar_min = 90  # Minimum value on the color bar
+    color_bar_max = 100
+    norm = matplotlib.colors.Normalize(vmin=color_bar_min / 100,
+                                       vmax=color_bar_max / 100)  # A function to normalize values between a desired min and max
+
+    # Plot the Line segments
+    line_segment_rows = LineCollection(segments, colors=viridis(norm(smoothness_of_segment)), linestyles='solid',
+                                       zorder=20)
+    ax.add_collection(line_segment_rows)
+    fig = plt.gcf()
+
+    # Color bar settings for Line Segments
+    cbar = fig.colorbar(line_segment_rows,
+                        ticks=[0, norm(min(smoothness_of_segment)), 1])  # Locations of labels on Color Bar
+    cbar.set_label('Smoothness (%)')
+    cbar.ax.set_yticklabels(
+        [str(color_bar_min), str(round(min(smoothness_of_segment) * 100, 2)), '100'])  # Labels on Color Bar
+    ax.autoscale()
+
+    # plt.legend(numpoints=1)
+    # plt.title(title)
+    # plt.show()
