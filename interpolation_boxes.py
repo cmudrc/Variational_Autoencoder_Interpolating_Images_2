@@ -60,10 +60,10 @@ shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "b
           "back_slash_plus_box", "forward_slash_plus_box", "hot_dog_box", "hamburger_box", "x_hamburger_box",
           "x_hot_dog_box", "x_plus_box")
 
-box_shape_1 = "hot_dog_box"   # End points for the 2 point interpolation
-box_shape_2 = "forward_slash_plus_box"
+box_shape_1 = "basic_box"   # End points for the 2 point interpolation
+box_shape_2 = "hamburger_box"
 
-box_shape_3 = "diagonal_box_split"  # Additional end points to use for grid interpolation
+box_shape_3 = "hot_dog_box"  # Additional end points to use for grid interpolation
 box_shape_4 = "x_plus_box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
@@ -311,9 +311,8 @@ for i in range(num_interp):
         figure[i * 28:(i + 1) * 28, j * 28:(j + 1) * 28, ] = generated_image[:, :, -1]
         mesh_predicted_interps.append(generated_image[:, :, -1])
 
-plt.title("Mesh Plot")
 plt.figure(figsize=(15, 15))
-plt.imshow(figure, cmap='autumn')
+plt.imshow(figure, cmap='gray')
 plt.show()
 
 
@@ -326,7 +325,7 @@ plt.show()
 #     plt.imshow(np.concatenate(mesh_predicted_interps[:,col], axis=0), cmap='gray')
 #     plt.show()
 
-
+'''
 ########################################################################################################################
 # Preparing the Data to be Plotted
 trainX = box_matrix_train
@@ -395,6 +394,9 @@ plot_reduction_interpolation(train_latent_points, box_shape_train, latent_matrix
                              title="PCA Reduced Latent Space with Visualization of Interpolation")
 
 ########################################################################################################################
+'''
+
+
 # Latent Feature Cluster for Training Data using PCA and Predicted Grid Latent Points
 
 mesh_flat = np.reshape(mesh, (num_interp**2, latent_dimensionality))

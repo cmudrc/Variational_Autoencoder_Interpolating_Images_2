@@ -4,11 +4,14 @@ import pacmap  # will need to change numba version: pip install numba==0.53
 # import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
+import matplotlib
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 from smoothness_testing import smoothness
 import cv2
+from matplotlib.collections import LineCollection
+from matplotlib import cm
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP
@@ -208,6 +211,7 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
             count_col.append(col)
             interpolation = mesh_predicted_interps[:, col]
             smoothness_line_col.append(smoothness(interpolation)[0])  # adds the average smoothness to our array
+
         plt.scatter(count_col, smoothness_line_col, label="Column Smoothness")
         plt.xlabel("Rows/Columns", fontsize=16)
         plt.ylabel("Smoothness (%)", fontsize=16)
@@ -250,16 +254,37 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
     interpolation_cords_y = y1[-np.shape(interpolated_latent_points)[0]:]  # coordinates of the interpolation points (ordered)
     interpolation_cords_y = np.reshape(interpolation_cords_y, (np.shape(mesh_predicted_interps)[0], np.shape(mesh_predicted_interps)[1]))
 
-    colors = pl.cm.jet(np.linspace(0, 1, 20)) # np.shape(mesh_predicted_interps)[0]+np.shape(mesh_predicted_interps)[1]))
-    print(np.shape(colors))
-    print(colors)
-    print(type(colors))
+    # colors = pl.cm.jet(np.linspace(0, 1, 20)) # np.shape(mesh_predicted_interps)[0]+np.shape(mesh_predicted_interps)[1]))
+    # print(np.shape(colors))
+    # print(colors)
+    # print(type(colors))
     # print(interpolation_cords_y)
     # print("x, y")
     row_lines = []
     for row in range(np.shape(interpolation_cords_x)[0]):
-        row_lines.append([interpolation_cords_x[row,0], interpolation_cords_y[row,0]],[])
+        row_lines.append([(interpolation_cords_x[row,0], interpolation_cords_y[row,0]), (interpolation_cords_x[row,-1], interpolation_cords_y[row,-1])])
 
+    # viridis = cm.get_cmap('viridis', 12)
+    viridis = matplotlib.colormaps['viridis']
+    smoothness_line_row = np.array(smoothness_line_row) / 100
+    # norm = matplotlib.colors.Normalize(vmin=min(smoothness_line_row), vmax=1)
+    norm = matplotlib.colors.Normalize(vmin=.8, vmax=1)
+    print("First smooothness value",smoothness_line_row[0])
+    print("Norm of first smoothness value",norm(smoothness_line_row[0]))
+    print(smoothness_line_row)
+
+    line_segment_rows = LineCollection(row_lines, colors=viridis(norm(smoothness_line_row)), linestyles='solid', zorder=20)
+    # line_segment_rows = LineCollection(row_lines, colors=viridis(smoothness_line_row), linestyles='solid', zorder=20)
+
+    ax.add_collection(line_segment_rows)
+    fig = plt.gcf()
+    cbar = fig.colorbar(line_segment_rows, ticks = [0, viridis(norm(min(smoothness_line_row))),1])
+    cbar.set_label('Smoothness (%)')
+    # cbar.ax.set_yticklabels([str(round((min(smoothness_line_row)*100),2)), '100'])  # vertically oriented colorbar
+    cbar.ax.set_yticklabels(['80',str(round(min(smoothness_line_row)*100,2)) ,'100'])  # vertically oriented colorbar
+    ax.set_title('Line Collection with mapped colors')
+    # plt.clim(vmin=min(smoothness_line_row), vmax=100)
+    ax.autoscale()
         # print("x", interpolation_cords_x[row,0], interpolation_cords_x[row,-1])
         # print("y", interpolation_cords_y[row,0],interpolation_cords_y[row,-1])
         # ax1.plot([interpolation_cords_x[row,0], interpolation_cords_x[row,-1]], [interpolation_cords_y[row,0],interpolation_cords_y[row,-1]], color=np.where(colors == smoothness_line_row[row]/100), zorder=10, label="Smoothness of Rows")
