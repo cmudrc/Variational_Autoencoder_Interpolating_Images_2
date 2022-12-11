@@ -182,18 +182,18 @@ def plot_reduction_interpolation(original_data_latent_points, original_data_labe
 
 
 ########################################################################################################################
-def plot_interpolation_smoothness(original_data_latent_points, original_data_labels, interpolated_latent_points, mesh_predicted_interps,
-                                 latent_dimensionality, image_arrays, image_size, number_of_interpolations, reduction_function=PCA_reduction, markersize=8, marker_color='red',
-                                 title="Plot of Latent Points with Interpolated Feature", plot_lines=True, plot_points=True, interp_type="mesh"):
+def plot_interpolation_smoothness(original_data_latent_points, original_data_labels, interpolated_latent_points,
+                                 latent_dimensionality, image_arrays, image_size, number_of_interpolations,
+                                  reduction_function=PCA_reduction, markersize=8, marker_color='red',
+                                  title="Plot of Latent Points with Interpolated Feature", mesh_predicted_interps=None,
+                                  plot_lines=True, plot_points=True, color_bar_min = 85, color_bar_max=100):
 
     train_data_latent_points = np.append(original_data_latent_points, interpolated_latent_points, axis=0)
     print("Shape of combined points", np.shape(train_data_latent_points))
 
-    if interp_type == "mesh":
+    if mesh_predicted_interps != None:
         mesh_predicted_interps = np.reshape(mesh_predicted_interps, (
         number_of_interpolations, number_of_interpolations, image_size, image_size)) # reshape so that the images can be indexed by row/column
-
-
 
         # Get the smoothness of each row in the mesh
         count_row = []
@@ -211,8 +211,9 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
             count_col.append(col)
             interpolation = mesh_predicted_interps[:, col]
             smoothness_line_col.append(smoothness(interpolation)[0])  # adds the average smoothness to our array
-
         plt.scatter(count_col, smoothness_line_col, label="Column Smoothness")
+
+        plt.legend()
         plt.xlabel("Rows/Columns", fontsize=16)
         plt.ylabel("Smoothness (%)", fontsize=16)
         plt.title("Smoothness over mesh ", fontsize=16)
@@ -221,16 +222,16 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
         plt.ylim([60, 100])
         plt.show()
 
+    # Perform Reduction and get points for Training Images and Predicted Points
     x1, y1, title1 = reduction_function(train_data_latent_points, latent_dimensionality)
-
-    combined_label = original_data_labels
+    combined_label = original_data_labels # Contains the labels for all the points
     for i in range(len(interpolated_latent_points)):
         combined_label = np.append(combined_label, np.array("Predicted Points"))
 
     # Establish plot reduction of images
-    image_arrays = np.pad(image_arrays, 1, mode='constant')
+    image_arrays = np.pad(image_arrays, 1, mode='constant') # Puts a black box surrounding each array
     fig, ax = plt.subplots()
-    ax1 = ax
+
     # Sort and plot the points and images into the latent space
     for label in set(combined_label):
         cond = np.where(np.array(combined_label) == str(label))
@@ -238,10 +239,9 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
             imscatter(x1[cond], y1[cond], imageData=image_arrays[cond], ax=ax, zoom=0.6, image_size=image_size + 2)
 
         else:
-            if plot_points is True: # Plots the predicted points
+            if plot_points is True:  # Plots the predicted points
                 ax.plot(x1[cond], y1[cond], marker='o', c=marker_color, markersize=markersize, linestyle='none',
                         label=label, zorder=5)
-                # print(x1[cond], y1[cond])
             if plot_lines:
                 ax.plot(x1[cond], y1[cond], 'ro-', zorder=10)
 
@@ -256,41 +256,34 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
     row_lines = []
     for row in range(np.shape(interpolation_cords_x)[0]):
         row_lines.append([(interpolation_cords_x[row,0], interpolation_cords_y[row,0]), (interpolation_cords_x[row,-1], interpolation_cords_y[row,-1])])
+    col_lines = []
+    for col in range(np.shape(interpolation_cords_x)[1]):
+        row_lines.append([(interpolation_cords_x[0, col], interpolation_cords_y[0, col]),
+                          (interpolation_cords_x[-1, col], interpolation_cords_y[-1, col])])
 
     smoothness_line_row = np.array(smoothness_line_row) / 100
+    smoothness_line_col = np.array(smoothness_line_col) / 100
 
-    # # Setup Colorbar Color, Min and Max
-    # viridis = matplotlib.colormaps['viridis']  # A function that returns the color value of a number (0-1)
-    # color_bar_min = 90  # Minimum value on the color bar
-    # color_bar_max = 100
-    # norm = matplotlib.colors.Normalize(vmin=color_bar_min/100, vmax=color_bar_max/100)  # A function to normalize values between a desired min and max
-    #
-    # # Plot the Line segments
-    # line_segment_rows = LineCollection(row_lines, colors=viridis(norm(smoothness_line_row)), linestyles='solid', zorder=20)
-    # ax.add_collection(line_segment_rows)
-    # fig = plt.gcf()
-    #
-    # # Color bar settings for Line Segments
-    # cbar = fig.colorbar(line_segment_rows, ticks=[0, norm(min(smoothness_line_row)),1]) # Locations of labels on Color Bar
-    # cbar.set_label('Smoothness (%)')
-    # cbar.ax.set_yticklabels([str(color_bar_min),str(round(min(smoothness_line_row)*100,2)),'100'])  # Labels on Color Bar
-    # ax.autoscale()
-    plot_line_segments(row_lines, smoothness_line_row, ax) # function that
+    plot_line_segments(row_lines, smoothness_line_row, ax, color_bar_min=color_bar_min, color_bar_max=color_bar_max) # function that plots the line segments and color codes them
     plt.legend(numpoints=1)
     plt.title(title)
     plt.show()
 
+    ax1= ax
+    plot_line_segments(col_lines, smoothness_line_col, ax1, color_bar_min=color_bar_min,
+                       color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
+    plt.legend(numpoints=1)
+    plt.title(title)
+    plt.show()
 
 ########################################################################################################################
-def plot_line_segments(segments,smoothness_of_segment, ax):
+def plot_line_segments(segments,smoothness_of_segment, ax, color_bar_min=85, color_bar_max=100):
     # Segments - list of line coordinates
     # Smoothness of Segment - the smoothness of the images over the segment
     # ax - the predefined axis that is being used to plot the data
 
     # Setup Colorbar Color, Min and Max
     viridis = matplotlib.colormaps['viridis']  # A function that returns the color value of a number (0-1)
-    color_bar_min = 90  # Minimum value on the color bar
-    color_bar_max = 100
     norm = matplotlib.colors.Normalize(vmin=color_bar_min / 100,
                                        vmax=color_bar_max / 100)  # A function to normalize values between a desired min and max
 
@@ -302,12 +295,8 @@ def plot_line_segments(segments,smoothness_of_segment, ax):
 
     # Color bar settings for Line Segments
     cbar = fig.colorbar(line_segment_rows,
-                        ticks=[0, norm(min(smoothness_of_segment)), 1])  # Locations of labels on Color Bar
+                        ticks=[0, norm(min(smoothness_of_segment)),norm(max(smoothness_of_segment)), 1])  # Locations of labels on Color Bar
     cbar.set_label('Smoothness (%)')
     cbar.ax.set_yticklabels(
-        [str(color_bar_min), str(round(min(smoothness_of_segment) * 100, 2)), '100'])  # Labels on Color Bar
+        [str(color_bar_min), str(round(min(smoothness_of_segment) * 100, 2)) + " - Min", str(round(max(smoothness_of_segment) * 100, 2)) + " - Max",  '100'])  # Labels on Color Bar
     ax.autoscale()
-
-    # plt.legend(numpoints=1)
-    # plt.title(title)
-    # plt.show()
