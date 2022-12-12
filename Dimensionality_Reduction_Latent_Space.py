@@ -184,9 +184,10 @@ def plot_reduction_interpolation(original_data_latent_points, original_data_labe
 ########################################################################################################################
 def plot_interpolation_smoothness(original_data_latent_points, original_data_labels, interpolated_latent_points,
                                  latent_dimensionality, image_arrays, image_size, number_of_interpolations,
-                                  reduction_function=PCA_reduction, markersize=8, marker_color='red',
+                                  reduction_function=PCA_reduction, markersize=8, marker_color='black',
                                   title="Plot of Latent Points with Interpolated Feature", mesh_predicted_interps=None,
-                                  plot_lines=True, plot_points=True, color_bar_min = 85, color_bar_max=100):
+                                  plot_lines=True, plot_points=True, color_bar_min = 85, color_bar_max=100,
+                                  plot_row_segments=True, plot_col_segments=True, cmap='viridis'):
 
     train_data_latent_points = np.append(original_data_latent_points, interpolated_latent_points, axis=0)
     print("Shape of combined points", np.shape(train_data_latent_points))
@@ -258,23 +259,43 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
         row_lines.append([(interpolation_cords_x[row,0], interpolation_cords_y[row,0]), (interpolation_cords_x[row,-1], interpolation_cords_y[row,-1])])
     col_lines = []
     for col in range(np.shape(interpolation_cords_x)[1]):
-        row_lines.append([(interpolation_cords_x[0, col], interpolation_cords_y[0, col]),
+        col_lines.append([(interpolation_cords_x[0, col], interpolation_cords_y[0, col]),
                           (interpolation_cords_x[-1, col], interpolation_cords_y[-1, col])])
 
     smoothness_line_row = np.array(smoothness_line_row) / 100
     smoothness_line_col = np.array(smoothness_line_col) / 100
 
-    plot_line_segments(row_lines, smoothness_line_row, ax, color_bar_min=color_bar_min, color_bar_max=color_bar_max) # function that plots the line segments and color codes them
+    # plot_line_segments(row_lines, smoothness_line_row, ax, color_bar_min=color_bar_min, color_bar_max=color_bar_max) # function that plots the line segments and color codes them
+
+    # plt.show()
+
+    # ax1= ax
+    # plot_line_segments(col_lines, smoothness_line_col, ax, color_bar_min=color_bar_min, color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
+
+    if plot_row_segments == plot_col_segments == True:
+        plot_line_segments_rows_columns(row_lines,col_lines,smoothness_line_row,smoothness_line_col,ax, "Row", "Column")
+
+        # plot_line_segments(col_lines, smoothness_line_col, ax, color_bar_min=color_bar_min,color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
+        line_segment_title = ": Smoothness of Rows and Columns Represented by Line Segments"
+    elif plot_col_segments is True:
+        plot_line_segments(col_lines, smoothness_line_col, ax, color_bar_min=color_bar_min,
+                           color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
+        line_segment_title = ": Smoothness Columns Represented by Line Segments"
+    elif plot_row_segments is True:
+        plot_line_segments(row_lines, smoothness_line_row, ax, color_bar_min=color_bar_min,
+                           color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
+        line_segment_title = ": Smoothness of Rows Represented by Line Segments"
+    else:
+        print("Use plot_reduction_interpolation if you do not want line segments on your figure")
+        line_segment_title = ""
+
+
     plt.legend(numpoints=1)
-    plt.title(title)
+    plt.title(title + line_segment_title)
+    # plt.legend(numpoints=1)
+    # plt.title(title)
     plt.show()
 
-    ax1= ax
-    plot_line_segments(col_lines, smoothness_line_col, ax1, color_bar_min=color_bar_min,
-                       color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
-    plt.legend(numpoints=1)
-    plt.title(title)
-    plt.show()
 
 ########################################################################################################################
 def plot_line_segments(segments,smoothness_of_segment, ax, color_bar_min=85, color_bar_max=100):
@@ -283,12 +304,13 @@ def plot_line_segments(segments,smoothness_of_segment, ax, color_bar_min=85, col
     # ax - the predefined axis that is being used to plot the data
 
     # Setup Colorbar Color, Min and Max
-    viridis = matplotlib.colormaps['viridis']  # A function that returns the color value of a number (0-1)
+    cmap = matplotlib.colormaps['viridis']  # A function that returns the color value of a number (0-1)
     norm = matplotlib.colors.Normalize(vmin=color_bar_min / 100,
                                        vmax=color_bar_max / 100)  # A function to normalize values between a desired min and max
 
+
     # Plot the Line segments
-    line_segment_rows = LineCollection(segments, colors=viridis(norm(smoothness_of_segment)), linestyles='solid',
+    line_segment_rows = LineCollection(segments, colors=cmap(norm(smoothness_of_segment)), linestyles='solid',
                                        zorder=20)
     ax.add_collection(line_segment_rows)
     fig = plt.gcf()
@@ -299,4 +321,45 @@ def plot_line_segments(segments,smoothness_of_segment, ax, color_bar_min=85, col
     cbar.set_label('Smoothness (%)')
     cbar.ax.set_yticklabels(
         [str(color_bar_min), str(round(min(smoothness_of_segment) * 100, 2)) + " - Min", str(round(max(smoothness_of_segment) * 100, 2)) + " - Max",  '100'])  # Labels on Color Bar
+    ax.autoscale()
+
+
+########################################################################################################################
+def plot_line_segments_rows_columns(segments1, segments2, smoothness_of_segment1, smoothness_of_segment2, ax,
+                                    name_segment_1="Segment Set 1", name_segment_2="Segment Set 2",
+                                    color_bar_min=85, color_bar_max=100):
+    # Segments - list of line coordinates
+    # Smoothness of Segment - the smoothness of the images over the segment
+    # ax - the predefined axis that is being used to plot the data
+
+    # Setup Colorbar Color, Min and Max
+    cmap = matplotlib.colormaps['viridis']  # A function that returns the color value of a number (0-1)
+    norm = matplotlib.colors.Normalize(vmin=color_bar_min / 100,
+                                       vmax=color_bar_max / 100)  # A function to normalize values between a desired min and max
+    # Combine Segments for Plotting
+    collective_segments = np.append(segments1, segments2,axis=0)
+    collective_smoothness = np.append(smoothness_of_segment1,smoothness_of_segment2)
+
+    # Plot the Line segments
+    line_segment_rows = LineCollection(collective_segments, colors=cmap(norm(collective_smoothness)), linestyles='solid',
+                                       zorder=20, linewidths=2)
+    ax.add_collection(line_segment_rows)
+    fig = plt.gcf()
+
+    # Color bar settings for Line Segments
+    cbar = fig.colorbar(line_segment_rows,
+                        ticks=[0,
+                               norm(min(smoothness_of_segment1)),
+                               norm(max(smoothness_of_segment1)),
+                               norm(min(smoothness_of_segment2)),
+                               norm(max(smoothness_of_segment2)),
+                               1])  # Locations of labels on Color Bar
+    cbar.set_label('Smoothness (%)')
+    cbar.ax.set_yticklabels(
+        [str(color_bar_min),
+         str(round(min(smoothness_of_segment1) * 100, 2)) + " - Min of " + name_segment_1,
+         str(round(max(smoothness_of_segment1) * 100, 2)) + " - Max of " + name_segment_1,
+         str(round(min(smoothness_of_segment2) * 100, 2)) + " - Min of " + name_segment_2,
+         str(round(max(smoothness_of_segment2) * 100, 2)) + " - Max of " + name_segment_2,
+         '100'])  # Labels on Color Bar
     ax.autoscale()

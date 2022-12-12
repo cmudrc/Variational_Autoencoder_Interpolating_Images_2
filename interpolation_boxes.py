@@ -413,8 +413,8 @@ plot_reduction_interpolation(train_latent_points, box_shape_train, mesh_flat, la
                              title="PCA Reduction of Mesh Interpolation", plot_lines=False, plot_points=False)
 
 plot_interpolation_smoothness(train_latent_points, box_shape_train, mesh_flat,  latent_dimensionality,
-                             image_size=image_size, number_of_interpolations=num_interp,image_arrays=box_matrix_train, markersize=8,
-                             marker_color='red',
+                             image_size=image_size, number_of_interpolations=num_interp,image_arrays=box_matrix_train, markersize=6,
+                             marker_color='grey',
                              title="PCA Reduction of Mesh Interpolation",mesh_predicted_interps=mesh_predicted_interps,
                                 plot_lines=False, plot_points=True, color_bar_min=80, color_bar_max=100)
 
