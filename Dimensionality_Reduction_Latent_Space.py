@@ -1,9 +1,6 @@
 import numpy as np
 import pacmap  # will need to change numba version: pip install numba==0.53
-# import seaborn as sns
-# import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.pylab as pl
 import matplotlib
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from sklearn.manifold import TSNE
@@ -11,7 +8,7 @@ from sklearn.decomposition import PCA
 from smoothness_testing import smoothness
 import cv2
 from matplotlib.collections import LineCollection
-from matplotlib import cm
+
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP
@@ -187,12 +184,11 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
                                   reduction_function=PCA_reduction, markersize=8, marker_color='black',
                                   title="Plot of Latent Points with Interpolated Feature", mesh_predicted_interps=None,
                                   plot_lines=True, plot_points=True, color_bar_min = 85, color_bar_max=100,
-                                  plot_row_segments=True, plot_col_segments=True, cmap='viridis'):
+                                  plot_row_segments=True, plot_col_segments=True):
 
     train_data_latent_points = np.append(original_data_latent_points, interpolated_latent_points, axis=0)
-    print("Shape of combined points", np.shape(train_data_latent_points))
 
-    if mesh_predicted_interps != None:
+    if mesh_predicted_interps is not None:
         mesh_predicted_interps = np.reshape(mesh_predicted_interps, (
         number_of_interpolations, number_of_interpolations, image_size, image_size)) # reshape so that the images can be indexed by row/column
 
@@ -230,14 +226,24 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
         combined_label = np.append(combined_label, np.array("Predicted Points"))
 
     # Establish plot reduction of images
-    image_arrays = np.pad(image_arrays, 1, mode='constant') # Puts a black box surrounding each array
+    image_arrays_padded = np.pad(image_arrays, 1, mode='constant') # Puts a black box surrounding each array
     fig, ax = plt.subplots()
 
     # Sort and plot the points and images into the latent space
     for label in set(combined_label):
         cond = np.where(np.array(combined_label) == str(label))
         if label != "Predicted Points":  # Plots the images
-            imscatter(x1[cond], y1[cond], imageData=image_arrays[cond], ax=ax, zoom=0.6, image_size=image_size + 2)
+            if mesh_predicted_interps is not None:
+                # np.where(image_arrays != 1, image_arrays, 0.5)
+                image_arrays = np.array(image_arrays)
+                image_arrays[image_arrays < 2] = 0.5
+                image_arrays_gray = np.pad(image_arrays, 1, mode='constant') # Puts a black box surrounding each array
+                images = image_arrays_gray
+                zoom = 1
+            else:
+                images = image_arrays_padded
+                zoom = 0.6
+            imscatter(x1[cond], y1[cond], imageData=images[cond], ax=ax, zoom=zoom, image_size=image_size + 2)
 
         else:
             if plot_points is True:  # Plots the predicted points
@@ -261,6 +267,21 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
     for col in range(np.shape(interpolation_cords_x)[1]):
         col_lines.append([(interpolation_cords_x[0, col], interpolation_cords_y[0, col]),
                           (interpolation_cords_x[-1, col], interpolation_cords_y[-1, col])])
+    # Plotting the Images in the 4 Corners of the Mesh
+    print(np.shape(mesh_predicted_interps[(0,0)]))
+
+    images_corners = []
+    x_corners = []
+    y_corners = []
+    for point in [(0,0), (0,-1), (-1,0), (-1,-1)]: # Loop through the corner points in the mesh
+        print(point)
+        images_corners.append(np.pad(mesh_predicted_interps[point], 1, mode='constant') ) # Puts a black box surrounding each array
+        x_corners.append(interpolation_cords_x[point])
+        y_corners.append(interpolation_cords_y[point])
+    print(np.shape(images_corners))
+    print(np.shape(x_corners))
+    imscatter(x_corners, y_corners, imageData=images_corners, ax=ax, zoom=0.6, image_size=image_size + 2)
+
 
     smoothness_line_row = np.array(smoothness_line_row) / 100
     smoothness_line_col = np.array(smoothness_line_col) / 100
@@ -288,7 +309,6 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
     else:
         print("Use plot_reduction_interpolation if you do not want line segments on your figure")
         line_segment_title = ""
-
 
     plt.legend(numpoints=1)
     plt.title(title + line_segment_title)

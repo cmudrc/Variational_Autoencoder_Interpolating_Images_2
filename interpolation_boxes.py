@@ -414,9 +414,14 @@ plot_reduction_interpolation(train_latent_points, box_shape_train, mesh_flat, la
 
 plot_interpolation_smoothness(train_latent_points, box_shape_train, mesh_flat,  latent_dimensionality,
                              image_size=image_size, number_of_interpolations=num_interp,image_arrays=box_matrix_train, markersize=6,
-                             marker_color='grey',
+                             marker_color='black',
                              title="PCA Reduction of Mesh Interpolation",mesh_predicted_interps=mesh_predicted_interps,
-                                plot_lines=False, plot_points=True, color_bar_min=80, color_bar_max=100)
+                                plot_lines=False, plot_points=True, color_bar_min=80, color_bar_max=100, plot_row_segments=False)
+plot_interpolation_smoothness(train_latent_points, box_shape_train, mesh_flat,  latent_dimensionality,
+                             image_size=image_size, number_of_interpolations=num_interp,image_arrays=box_matrix_train, markersize=6,
+                             marker_color='black',
+                             title="PCA Reduction of Mesh Interpolation",mesh_predicted_interps=mesh_predicted_interps,
+                                plot_lines=False, plot_points=True, color_bar_min=80, color_bar_max=100, plot_col_segments=False)
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points
