@@ -60,11 +60,11 @@ shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "b
           "back_slash_plus_box", "forward_slash_plus_box", "hot_dog_box", "hamburger_box", "x_hamburger_box",
           "x_hot_dog_box", "x_plus_box")
 
-box_shape_1 = "hamburger_box"   # End points for the 2 point interpolation
-box_shape_2 =  "forward_slash_box"#
+box_shape_1 =  "back_slash_plus_box"  # End points for the 2 point interpolation
+box_shape_2 =  "hamburger_box"#
 
-box_shape_3 =  "back_slash_box"#"back_slash_box" # Additional end points to use for grid interpolation
-box_shape_4 =  "hot_dog_box"#"basic_box"
+box_shape_3 =  "forward_slash_box" #"basic_box" # Additional end points to use for grid interpolation
+box_shape_4 =  "diagonal_box_split"  #   #"back_slash_box" # "forward_slash_plus_box" "horizontal_vertical_box_split" "forward_slash_box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
 indices_1 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_1]
@@ -325,7 +325,7 @@ plt.show()
 #     plt.imshow(np.concatenate(mesh_predicted_interps[:,col], axis=0), cmap='gray')
 #     plt.show()
 
-'''
+
 ########################################################################################################################
 # Preparing the Data to be Plotted
 trainX = box_matrix_train
@@ -394,9 +394,6 @@ plot_reduction_interpolation(train_latent_points, box_shape_train, latent_matrix
                              title="PCA Reduced Latent Space with Visualization of Interpolation")
 
 ########################################################################################################################
-'''
-
-
 # Latent Feature Cluster for Training Data using PCA and Predicted Grid Latent Points
 
 mesh_flat = np.reshape(mesh, (num_interp**2, latent_dimensionality))
@@ -413,15 +410,16 @@ plot_reduction_interpolation(train_latent_points, box_shape_train, mesh_flat, la
                              title="PCA Reduction of Mesh Interpolation", plot_lines=False, plot_points=False)
 
 plot_interpolation_smoothness(train_latent_points, box_shape_train, mesh_flat,  latent_dimensionality,
-                             image_size=image_size, number_of_interpolations=num_interp,image_arrays=box_matrix_train, markersize=6,
-                             marker_color='black',
-                             title="PCA Reduction of Mesh Interpolation",mesh_predicted_interps=mesh_predicted_interps,
-                                plot_lines=False, plot_points=True, color_bar_min=80, color_bar_max=100, plot_row_segments=False)
+                              image_size=image_size, number_of_interpolations=num_interp,image_arrays=box_matrix_train,
+                              markersize=6, marker_color='black', title="PCA Reduction of Mesh Interpolation",
+                              mesh_predicted_interps=mesh_predicted_interps, plot_lines=False, plot_points=True,
+                              color_bar_min=80, color_bar_max=100, plot_row_segments=False)
+
 plot_interpolation_smoothness(train_latent_points, box_shape_train, mesh_flat,  latent_dimensionality,
-                             image_size=image_size, number_of_interpolations=num_interp,image_arrays=box_matrix_train, markersize=6,
-                             marker_color='black',
-                             title="PCA Reduction of Mesh Interpolation",mesh_predicted_interps=mesh_predicted_interps,
-                                plot_lines=False, plot_points=True, color_bar_min=80, color_bar_max=100, plot_col_segments=False)
+                              image_size=image_size, number_of_interpolations=num_interp,image_arrays=box_matrix_train,
+                              markersize=6, marker_color='black', title="PCA Reduction of Mesh Interpolation",
+                              mesh_predicted_interps=mesh_predicted_interps, plot_lines=False, plot_points=True,
+                              color_bar_min=80, color_bar_max=100, plot_col_segments=False)
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points

@@ -186,12 +186,16 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
                                   plot_lines=True, plot_points=True, color_bar_min = 85, color_bar_max=100,
                                   plot_row_segments=True, plot_col_segments=True):
 
+    # combines all the latent points of the training data and the interpolation
     train_data_latent_points = np.append(original_data_latent_points, interpolated_latent_points, axis=0)
 
+    # Check if there is an input for mesh_predicted_interps
     if mesh_predicted_interps is not None:
-        mesh_predicted_interps = np.reshape(mesh_predicted_interps, (
-        number_of_interpolations, number_of_interpolations, image_size, image_size)) # reshape so that the images can be indexed by row/column
+        mesh_predicted_interps = np.reshape(mesh_predicted_interps, (number_of_interpolations, number_of_interpolations,
+                                                                     image_size, image_size))
+        # reshape so that the images can be indexed by row/column
 
+        # Information needed to plot the smoothness of the rows and columns in the mesh
         # Get the smoothness of each row in the mesh
         count_row = []
         smoothness_line_row = []
@@ -221,12 +225,14 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
 
     # Perform Reduction and get points for Training Images and Predicted Points
     x1, y1, title1 = reduction_function(train_data_latent_points, latent_dimensionality)
-    combined_label = original_data_labels # Contains the labels for all the points
+
+    # Get labels for all the points in a single list
+    combined_label = original_data_labels  # Contains the labels for all the points
     for i in range(len(interpolated_latent_points)):
         combined_label = np.append(combined_label, np.array("Predicted Points"))
 
     # Establish plot reduction of images
-    image_arrays_padded = np.pad(image_arrays, 1, mode='constant') # Puts a black box surrounding each array
+    image_arrays_padded = np.pad(image_arrays, 1, mode='constant')  # Puts a black box surrounding each array
     fig, ax = plt.subplots()
 
     # Sort and plot the points and images into the latent space
@@ -234,91 +240,81 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
         cond = np.where(np.array(combined_label) == str(label))
         if label != "Predicted Points":  # Plots the images
             if mesh_predicted_interps is not None:
-                # np.where(image_arrays != 1, image_arrays, 0.5)
                 image_arrays = np.array(image_arrays)
-                image_arrays[image_arrays < 2] = 0.5
-                image_arrays_gray = np.pad(image_arrays, 1, mode='constant') # Puts a black box surrounding each array
+                image_arrays[image_arrays < 2] = 0.5  # Replaces the training images with gray boxes
+                image_arrays_gray = np.pad(image_arrays, 1, mode='constant')  # Puts a black box surrounding each array
                 images = image_arrays_gray
-                zoom = 1
             else:
                 images = image_arrays_padded
-                zoom = 0.6
-            imscatter(x1[cond], y1[cond], imageData=images[cond], ax=ax, zoom=zoom, image_size=image_size + 2)
+            # Plot the training images
+            imscatter(x1[cond], y1[cond], imageData=images[cond], ax=ax, zoom=0.6, image_size=image_size + 2)
 
         else:
             if plot_points is True:  # Plots the predicted points
                 ax.plot(x1[cond], y1[cond], marker='o', c=marker_color, markersize=markersize, linestyle='none',
                         label=label, zorder=5)
-            if plot_lines:
-                ax.plot(x1[cond], y1[cond], 'ro-', zorder=10)
 
-    # Pull Coordinates from PCA Reduction
-    interpolation_cords_x = x1[-np.shape(interpolated_latent_points)[0]:]  # coordinates of the interpolation points (ordered)
+    # Pull Coordinates from Reduction for plotting the Mesh
+    interpolation_cords_x = x1[-np.shape(interpolated_latent_points)[0]:]  # coordinates of the interpolation points x(ordered)
     interpolation_cords_x = np.reshape(interpolation_cords_x, (np.shape(mesh_predicted_interps)[0], np.shape(mesh_predicted_interps)[1]))
 
-    interpolation_cords_y = y1[-np.shape(interpolated_latent_points)[0]:]  # coordinates of the interpolation points (ordered)
+    interpolation_cords_y = y1[-np.shape(interpolated_latent_points)[0]:]  # coordinates of the interpolation points y(ordered)
     interpolation_cords_y = np.reshape(interpolation_cords_y, (np.shape(mesh_predicted_interps)[0], np.shape(mesh_predicted_interps)[1]))
 
-    # Create Line Segments
+    # Create the Segments between the rows and columns in the Mesh
     row_lines = []
     for row in range(np.shape(interpolation_cords_x)[0]):
-        row_lines.append([(interpolation_cords_x[row,0], interpolation_cords_y[row,0]), (interpolation_cords_x[row,-1], interpolation_cords_y[row,-1])])
+        row_lines.append([(interpolation_cords_x[row, 0], interpolation_cords_y[row, 0]),
+                          (interpolation_cords_x[row, -1], interpolation_cords_y[row,-1])])
     col_lines = []
     for col in range(np.shape(interpolation_cords_x)[1]):
         col_lines.append([(interpolation_cords_x[0, col], interpolation_cords_y[0, col]),
                           (interpolation_cords_x[-1, col], interpolation_cords_y[-1, col])])
-    # Plotting the Images in the 4 Corners of the Mesh
-    print(np.shape(mesh_predicted_interps[(0,0)]))
 
+    # Plot the Line Segments in the rows and columns in the mesh
+    smoothness_line_row = np.array(smoothness_line_row) / 100
+    smoothness_line_col = np.array(smoothness_line_col) / 100
+
+    if plot_row_segments == plot_col_segments == True:  # Plots rows and columns
+        plot_line_segments_rows_columns(row_lines, col_lines, smoothness_line_row, smoothness_line_col, ax, "Row", "Column")
+        line_segment_title = ": Smoothness of Rows and Columns Represented by Line Segments"
+
+    elif plot_col_segments is True:  # Plots the columns only
+        plot_line_segments(col_lines, smoothness_line_col, ax, color_bar_min=color_bar_min,
+                           color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
+        line_segment_title = ": Smoothness Columns Represented by Line Segments"
+
+    elif plot_row_segments is True:  # Plots the rows only
+        plot_line_segments(row_lines, smoothness_line_row, ax, color_bar_min=color_bar_min,
+                           color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
+        line_segment_title = ": Smoothness of Rows Represented by Line Segments"
+
+    else:  # Recommends the user to use a different function
+        print("Use plot_reduction_interpolation if you do not want line segments on your figure")
+        line_segment_title = ""
+
+    # Plotting the Images in the 4 Corners of the Mesh
     images_corners = []
     x_corners = []
     y_corners = []
-    for point in [(0,0), (0,-1), (-1,0), (-1,-1)]: # Loop through the corner points in the mesh
+    for point in [(0, 0), (0, -1), (-1, 0), (-1, -1)]:  # Loop through the corner points in the mesh
         print(point)
-        images_corners.append(np.pad(mesh_predicted_interps[point], 1, mode='constant') ) # Puts a black box surrounding each array
+        images_corners.append(np.pad(mesh_predicted_interps[point], 1, mode='constant')) # Puts a black box surrounding each array
         x_corners.append(interpolation_cords_x[point])
         y_corners.append(interpolation_cords_y[point])
     print(np.shape(images_corners))
     print(np.shape(x_corners))
-    imscatter(x_corners, y_corners, imageData=images_corners, ax=ax, zoom=0.6, image_size=image_size + 2)
+    imscatter(x_corners, y_corners, imageData=images_corners, ax=ax, zoom=1.5, image_size=image_size + 2)
 
-
-    smoothness_line_row = np.array(smoothness_line_row) / 100
-    smoothness_line_col = np.array(smoothness_line_col) / 100
-
-    # plot_line_segments(row_lines, smoothness_line_row, ax, color_bar_min=color_bar_min, color_bar_max=color_bar_max) # function that plots the line segments and color codes them
-
-    # plt.show()
-
-    # ax1= ax
-    # plot_line_segments(col_lines, smoothness_line_col, ax, color_bar_min=color_bar_min, color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
-
-    if plot_row_segments == plot_col_segments == True:
-        plot_line_segments_rows_columns(row_lines,col_lines,smoothness_line_row,smoothness_line_col,ax, "Row", "Column")
-
-        # plot_line_segments(col_lines, smoothness_line_col, ax, color_bar_min=color_bar_min,color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
-        line_segment_title = ": Smoothness of Rows and Columns Represented by Line Segments"
-    elif plot_col_segments is True:
-        plot_line_segments(col_lines, smoothness_line_col, ax, color_bar_min=color_bar_min,
-                           color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
-        line_segment_title = ": Smoothness Columns Represented by Line Segments"
-    elif plot_row_segments is True:
-        plot_line_segments(row_lines, smoothness_line_row, ax, color_bar_min=color_bar_min,
-                           color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
-        line_segment_title = ": Smoothness of Rows Represented by Line Segments"
-    else:
-        print("Use plot_reduction_interpolation if you do not want line segments on your figure")
-        line_segment_title = ""
-
+    # Plots the predicted points, line segments, training images, and images from the 4 corners of the mesh on a
+    # single figure
     plt.legend(numpoints=1)
     plt.title(title + line_segment_title)
-    # plt.legend(numpoints=1)
-    # plt.title(title)
     plt.show()
 
 
 ########################################################################################################################
-def plot_line_segments(segments,smoothness_of_segment, ax, color_bar_min=85, color_bar_max=100):
+def plot_line_segments(segments, smoothness_of_segment, ax, color_bar_min=85, color_bar_max=100):
     # Segments - list of line coordinates
     # Smoothness of Segment - the smoothness of the images over the segment
     # ax - the predefined axis that is being used to plot the data
@@ -327,7 +323,6 @@ def plot_line_segments(segments,smoothness_of_segment, ax, color_bar_min=85, col
     cmap = matplotlib.colormaps['viridis']  # A function that returns the color value of a number (0-1)
     norm = matplotlib.colors.Normalize(vmin=color_bar_min / 100,
                                        vmax=color_bar_max / 100)  # A function to normalize values between a desired min and max
-
 
     # Plot the Line segments
     line_segment_rows = LineCollection(segments, colors=cmap(norm(smoothness_of_segment)), linestyles='solid',
@@ -338,7 +333,7 @@ def plot_line_segments(segments,smoothness_of_segment, ax, color_bar_min=85, col
     # Color bar settings for Line Segments
     cbar = fig.colorbar(line_segment_rows,
                         ticks=[0, norm(min(smoothness_of_segment)),norm(max(smoothness_of_segment)), 1])  # Locations of labels on Color Bar
-    cbar.set_label('Smoothness (%)')
+    cbar.set_label('Smoothness (%)')  # Title of the color bar
     cbar.ax.set_yticklabels(
         [str(color_bar_min), str(round(min(smoothness_of_segment) * 100, 2)) + " - Min", str(round(max(smoothness_of_segment) * 100, 2)) + " - Max",  '100'])  # Labels on Color Bar
     ax.autoscale()
@@ -348,6 +343,7 @@ def plot_line_segments(segments,smoothness_of_segment, ax, color_bar_min=85, col
 def plot_line_segments_rows_columns(segments1, segments2, smoothness_of_segment1, smoothness_of_segment2, ax,
                                     name_segment_1="Segment Set 1", name_segment_2="Segment Set 2",
                                     color_bar_min=85, color_bar_max=100):
+    # Used to plot two different sets of segments on the same scale
     # Segments - list of line coordinates
     # Smoothness of Segment - the smoothness of the images over the segment
     # ax - the predefined axis that is being used to plot the data
