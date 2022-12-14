@@ -148,7 +148,6 @@ def plot_reduction_interpolation(original_data_latent_points, original_data_labe
                                  latent_dimensionality, image_arrays, image_size, reduction_function=PCA_reduction, markersize=8, marker_color='red',
                                  title="Plot of Latent Points with Interpolated Feature", plot_lines=True, plot_points=True):
     train_data_latent_points = np.append(original_data_latent_points, interpolated_latent_points, axis=0)
-    print("Shape of combined points", np.shape(train_data_latent_points))
 
     x1, y1, title1 = reduction_function(train_data_latent_points, latent_dimensionality)
 
@@ -214,9 +213,9 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
             smoothness_line_col.append(smoothness(interpolation)[0])  # adds the average smoothness to our array
         plt.scatter(count_col, smoothness_line_col, label="Column Smoothness")
 
-        plt.legend()
-        plt.xlabel("Rows/Columns", fontsize=16)
-        plt.ylabel("Smoothness (%)", fontsize=16)
+        plt.legend(fontsize=20)
+        plt.xlabel("Rows/Columns", fontsize=20)
+        plt.ylabel("Smoothness (%)", fontsize=20)
         plt.title("Smoothness over mesh ", fontsize=16)
         plt.xticks(fontsize=14)
         plt.yticks(fontsize=14)
@@ -298,17 +297,14 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
     x_corners = []
     y_corners = []
     for point in [(0, 0), (0, -1), (-1, 0), (-1, -1)]:  # Loop through the corner points in the mesh
-        print(point)
         images_corners.append(np.pad(mesh_predicted_interps[point], 1, mode='constant')) # Puts a black box surrounding each array
         x_corners.append(interpolation_cords_x[point])
         y_corners.append(interpolation_cords_y[point])
-    print(np.shape(images_corners))
-    print(np.shape(x_corners))
     imscatter(x_corners, y_corners, imageData=images_corners, ax=ax, zoom=1.5, image_size=image_size + 2)
 
     # Plots the predicted points, line segments, training images, and images from the 4 corners of the mesh on a
     # single figure
-    plt.legend(numpoints=1)
+    plt.legend(numpoints=1, fontsize=20)
     plt.title(title + line_segment_title)
     plt.show()
 
@@ -326,16 +322,19 @@ def plot_line_segments(segments, smoothness_of_segment, ax, color_bar_min=85, co
 
     # Plot the Line segments
     line_segment_rows = LineCollection(segments, colors=cmap(norm(smoothness_of_segment)), linestyles='solid',
-                                       zorder=20)
+                                       zorder=20, linewidths=4)
     ax.add_collection(line_segment_rows)
     fig = plt.gcf()
 
     # Color bar settings for Line Segments
     cbar = fig.colorbar(line_segment_rows,
                         ticks=[0, norm(min(smoothness_of_segment)),norm(max(smoothness_of_segment)), 1])  # Locations of labels on Color Bar
-    cbar.set_label('Smoothness (%)')  # Title of the color bar
+    cbar.set_label('Smoothness (%)', fontsize=20)  # Title of the color bar
     cbar.ax.set_yticklabels(
-        [str(color_bar_min), str(round(min(smoothness_of_segment) * 100, 2)) + " - Min", str(round(max(smoothness_of_segment) * 100, 2)) + " - Max",  '100'])  # Labels on Color Bar
+        [str(color_bar_min),
+         str(round(min(smoothness_of_segment) * 100, 2)) + " - Min",
+         str(round(max(smoothness_of_segment) * 100, 2)) + " - Max",
+         '100'], fontsize=16)  # Labels on Color Bar
     ax.autoscale()
 
 
@@ -358,7 +357,7 @@ def plot_line_segments_rows_columns(segments1, segments2, smoothness_of_segment1
 
     # Plot the Line segments
     line_segment_rows = LineCollection(collective_segments, colors=cmap(norm(collective_smoothness)), linestyles='solid',
-                                       zorder=20, linewidths=2)
+                                       zorder=20, linewidths=4)
     ax.add_collection(line_segment_rows)
     fig = plt.gcf()
 
@@ -370,12 +369,12 @@ def plot_line_segments_rows_columns(segments1, segments2, smoothness_of_segment1
                                norm(min(smoothness_of_segment2)),
                                norm(max(smoothness_of_segment2)),
                                1])  # Locations of labels on Color Bar
-    cbar.set_label('Smoothness (%)')
+    cbar.set_label('Smoothness (%)', fontsize=20)
     cbar.ax.set_yticklabels(
         [str(color_bar_min),
          str(round(min(smoothness_of_segment1) * 100, 2)) + " - Min of " + name_segment_1,
          str(round(max(smoothness_of_segment1) * 100, 2)) + " - Max of " + name_segment_1,
          str(round(min(smoothness_of_segment2) * 100, 2)) + " - Min of " + name_segment_2,
          str(round(max(smoothness_of_segment2) * 100, 2)) + " - Max of " + name_segment_2,
-         '100'])  # Labels on Color Bar
+         '100'], fontsize=16)  # Labels on Color Bar
     ax.autoscale()
