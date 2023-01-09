@@ -24,7 +24,7 @@ max_density = 1  # (Recommend: 1) The maximum density IS included in the data cr
 
 # Define the parameters of the Autoencoder
 latent_dimensionality = 4
-early_stopping_patience = 9  # "Number of epochs with no improvement after which training will be stopped." - Keras
+early_stopping_patience = 10  # "Number of epochs with no improvement after which training will be stopped." - Keras
 epochs = 150
 ########################################################################################################################
 box_data = make_boxes(image_size, number_of_densities, min_density, max_density)
