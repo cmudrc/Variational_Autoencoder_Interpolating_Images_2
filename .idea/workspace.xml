@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="4fa93b62-74cc-4959-b509-8bb9627fb4ee" name="Changes" comment="Changed dimensionality reduction functions to all use the same reduction so that plots are consistent" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Merge.Settings">
+    <option name="BRANCH" value="origin/master" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2GYImyqBzAa21F65EM7uu66zI2t" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/balma/Pycharm_Stuff/PycharmProjects/AutoEncoders/vae_test&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.Mappings&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\balma\Pycharm_Stuff\PycharmProjects\AutoEncoders\vae_test" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.interpolation_boxes">
+    <configuration name="Variational_Autoencoder_Boxes" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="AutoEncoders" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Variational_Autoencoder_Boxes.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="interpolation_boxes" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="AutoEncoders" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/interpolation_boxes.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.interpolation_boxes" />
+        <item itemvalue="Python.Variational_Autoencoder_Boxes" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="4fa93b62-74cc-4959-b509-8bb9627fb4ee" name="Changes" comment="" />
+      <created>1666559253462</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1666559253462</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Test">
+      <created>1666565046740</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1666565046740</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Updating Files to Current Version of Python 3.9">
+      <created>1666565138054</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1666565138054</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Testing the potential plotting for smoothness on the mesh grid overlay">
+      <created>1669856190232</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1669856190232</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Line locations are mapped in mesh, need to map the colors of the lines to the smoothness values of each interpolation">
+      <created>1670524847394</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1670524847394</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Fixed mesh plotting">
+      <created>1670616413949</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1670616413949</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Lines are now color coordinated, but not labeled properly">
+      <created>1670636835230</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1670636835230</updated>
+    </task>
+    <task id="LOCAL-00007" summary="WORKING: The plot of the mesh interpolation now displays the smoothness over the rows using lines">
+      <created>1670646980493</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1670646980493</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Added column lines to the mesh plot of smoothness">
+      <created>1670775083748</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1670775083748</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Fixed plot so that different combinations of the row/columns in the mesh can be plotted">
+      <created>1670879310598</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1670879310598</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Adjustments made to Mesh plotting">
+      <created>1670904433095</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1670904433095</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Finalized the plotting of the smoothness of the mesh functions">
+      <created>1671033967513</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1671033967513</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Minor changes, font sizes, and removing unnecessary text">
+      <created>1671040607970</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1671040607970</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Changed early stopping patience to 10, the standard amount.">
+      <created>1673279307647</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1673279307647</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Changed dimensionality reduction functions to all use the same reduction so that plots are consistent">
+      <created>1673302469130</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1673302469130</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Test" />
+    <MESSAGE value="Updating Files to Current Version of Python 3.9" />
+    <MESSAGE value="Testing the potential plotting for smoothness on the mesh grid overlay" />
+    <MESSAGE value="Line locations are mapped in mesh, need to map the colors of the lines to the smoothness values of each interpolation" />
+    <MESSAGE value="Fixed mesh plotting" />
+    <MESSAGE value="Lines are now color coordinated, but not labeled properly" />
+    <MESSAGE value="WORKING: The plot of the mesh interpolation now displays the smoothness over the rows using lines" />
+    <MESSAGE value="Added column lines to the mesh plot of smoothness" />
+    <MESSAGE value="Fixed plot so that different combinations of the row/columns in the mesh can be plotted" />
+    <MESSAGE value="Adjustments made to Mesh plotting" />
+    <MESSAGE value="Finalized the plotting of the smoothness of the mesh functions" />
+    <MESSAGE value="Minor changes, font sizes, and removing unnecessary text" />
+    <MESSAGE value="Changed early stopping patience to 10, the standard amount." />
+    <MESSAGE value="Changed dimensionality reduction functions to all use the same reduction so that plots are consistent" />
+    <option name="LAST_COMMIT_MESSAGE" value="Changed dimensionality reduction functions to all use the same reduction so that plots are consistent" />
+  </component>
+</project>
