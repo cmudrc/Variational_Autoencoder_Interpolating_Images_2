@@ -25,13 +25,14 @@ def PaCMAP_reduction(latent_points, latent_dimensionality, random_state=1):
     x = X_transformed[:, 0]
     y = X_transformed[:, 1]
     title = "PaCMAP with Predicted Points\nLatent Space Dimensionality: " + str(latent_dimensionality)
-    return x, y, title
+    return x, y, title, embedding
 
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
-def PCA_reduction(latent_points, latent_dimensionality, perplexity=7, learning_rate=20):
+def PCA_reduction(latent_points, latent_dimensionality):
     pca = PCA(n_components=2, random_state=0)
+    embedding = pca
     pca_fit = pca.fit_transform(latent_points)
     # configuring the parameters
     # the number of components = dimension of the embedded space
@@ -40,44 +41,18 @@ def PCA_reduction(latent_points, latent_dimensionality, perplexity=7, learning_r
     # default learning rate = 200 "If the learning rate is too high, the data may look like a ‘ball’ with any point
     # approximately equidistant from its nearest neighbours. If the learning rate is too low,
     # most points may look compressed in a dense cloud with few outliers."
-    title = "PCA with Predicted Points \nPerplexity: " + str(perplexity) + "\nLearning Rate: " + str(
-        learning_rate) + "\nLatent Space Dimensionality: " + str(latent_dimensionality)
+    title = "PCA with Predicted Points + \nLatent Space Dimensionality: " + str(latent_dimensionality)
     x = pca_fit[:, 0]
     y = pca_fit[:, 1]
-    # predict = pca.fit_transform(latent_matrix)
-    # predict_x = predict[:, 0]
-    # predict_y = predict[:, 0]
-    return x, y, title
 
-
-########################################################################################################################
-# Latent Feature Cluster for Training Data using PCA reduced T-SNE
-def PCA_TSNE_reduction(latent_points, latent_dimensionality, perplexity=30, learning_rate=20):
-    pca = PCA(n_components=2)
-    pca_fit = pca.fit_transform(latent_points)
-    model = TSNE(n_components=2, random_state=0, perplexity=perplexity,
-                 learning_rate=learning_rate)  # Perplexity(5-50) | learning_rate(10-1000)
-    # configuring the parameters
-    # the number of components = dimension of the embedded space
-    # default perplexity = 30 " Perplexity balances the attention t-SNE gives to local and global aspects of the data.
-    # It is roughly a guess of the number of close neighbors each point has. ..a denser dataset ... requires higher perplexity value"
-    # default learning rate = 200 "If the learning rate is too high, the data may look like a ‘ball’ with any point
-    # approximately equidistant from its nearest neighbours. If the learning rate is too low,
-    # most points may look compressed in a dense cloud with few outliers."
-    tsne_data = model.fit_transform(
-        pca_fit)  # When there are more data points, trainX should be the first couple hundred points so TSNE doesn't take too long
-    x = tsne_data[:, 0]
-    y = tsne_data[:, 1]
-    title = "PCA Reduced and T-SNE Plotted with Predicted Latent Points \nPerplexity: " + str(
-        perplexity) + "\nLearning Rate: " + str(learning_rate) + "\nLatent Space Dimensionality: " + str(
-        latent_dimensionality)
-    return x, y, title
+    return x, y, title, embedding
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using T-SNE
 def TSNE_reduction(latent_points, latent_dimensionality, perplexity=30, learning_rate=20):
     model = TSNE(n_components=2, random_state=0, perplexity=perplexity,
                  learning_rate=learning_rate)  # Perplexity(5-50) | learning_rate(10-1000)
+    embedding = model
     # configuring the parameters
     # the number of components = dimension of the embedded space
     # default perplexity = 30 " Perplexity balances the attention t-SNE gives to local and global aspects of the data.
@@ -91,7 +66,7 @@ def TSNE_reduction(latent_points, latent_dimensionality, perplexity=30, learning
     y = tsne_data[:, 1]
     title = ("T-SNE of Data\nPerplexity: " + str(perplexity) + "\nLearning Rate: "
              + str(learning_rate) + "\nLatent Space Dimensionality: " + str(latent_dimensionality))
-    return x, y, title
+    return x, y, title, embedding
 
 
 ########################################################################################################################
@@ -132,9 +107,9 @@ def imscatter(x, y, ax, imageData, image_size, zoom):
 
 
 # Plot images in latent space with respective reduction method
-def Latent_Image_Proj(image_arrays, image_size,train_latent_points, latent_dimensionality, reduction_function=PCA_reduction):
+def Latent_Image_Proj(image_arrays, image_size,train_latent_points, latent_dimensionality, embedding):
     # Compute Reduction embedding of latent space
-    x, y, title = reduction_function(train_latent_points, latent_dimensionality)
+    x, y, title, reduction_embedding = embedding
     # Plot images according to reduction embedding
     image_arrays = np.pad(image_arrays, 1, mode='constant')
     fig, ax = plt.subplots()
@@ -144,49 +119,25 @@ def Latent_Image_Proj(image_arrays, image_size,train_latent_points, latent_dimen
 
 
 ########################################################################################################################
-def plot_reduction_interpolation(original_data_latent_points, original_data_labels, interpolated_latent_points,
-                                 latent_dimensionality, image_arrays, image_size, reduction_function=PCA_reduction, markersize=8, marker_color='red',
-                                 title="Plot of Latent Points with Interpolated Feature", plot_lines=True, plot_points=True):
-    train_data_latent_points = np.append(original_data_latent_points, interpolated_latent_points, axis=0)
-
-    x1, y1, title1 = reduction_function(train_data_latent_points, latent_dimensionality)
-
-    combined_label = original_data_labels
-    for i in range(len(interpolated_latent_points)):
-        combined_label = np.append(combined_label, np.array("Predicted Points"))
-
-    # Establish plot reduction of images
-    image_arrays = np.pad(image_arrays, 1, mode='constant')
-    fig, ax = plt.subplots()
-
-    # Sort and plot the points and images into the latent space
-    for label in set(combined_label):
-        cond = np.where(np.array(combined_label) == str(label))
-        if label != "Predicted Points":
-            imscatter(x1[cond], y1[cond], imageData=image_arrays[cond], ax=ax, zoom=0.6, image_size=image_size + 2)
-
-        else:
-            if plot_points is True:
-                ax.plot(x1[cond], y1[cond], marker='o', c=marker_color, markersize=markersize, linestyle='none',
-                        label=label, zorder=10)
-            if plot_lines:
-                ax.plot(x1[cond], y1[cond], 'ro-', zorder=10)
-
-    plt.legend(numpoints=1)
-    plt.title(title)
-    plt.show()
-
-
-########################################################################################################################
-def plot_interpolation_smoothness(original_data_latent_points, original_data_labels, interpolated_latent_points,
-                                 latent_dimensionality, image_arrays, image_size, number_of_interpolations,
-                                  reduction_function=PCA_reduction, markersize=8, marker_color='black',
-                                  title="Plot of Latent Points with Interpolated Feature", mesh_predicted_interps=None,
-                                  plot_lines=True, plot_points=True, color_bar_min = 85, color_bar_max=100,
-                                  plot_row_segments=True, plot_col_segments=True):
+def plot_interpolation_smoothness(original_data_labels, interpolated_latent_points, embedding, image_arrays,
+                                  image_size, number_of_interpolations, markersize=8,
+                                  marker_color='black', mesh_predicted_interps=None,
+                                  plot_points=True, color_bar_min=85, color_bar_max=100, title="",
+                                  plot_row_segments=False, plot_col_segments=False, plot_lines=False):
 
     # combines all the latent points of the training data and the interpolation
-    train_data_latent_points = np.append(original_data_latent_points, interpolated_latent_points, axis=0)
+    # train_data_latent_points = np.append(original_data_latent_points, interpolated_latent_points, axis=0)
+
+    # Perform Reduction to get points for Training Images
+    x1, y1, title1, reduction_embedding = embedding
+
+    # Use the Embedding to append points for the Interpolated Images
+    embedded_interpolated_latent_points = reduction_embedding.transform(interpolated_latent_points)
+    x2 = embedded_interpolated_latent_points[:, 0]
+    y2 = embedded_interpolated_latent_points[:, 1]
+
+    x1 = np.append(x1, x2)
+    y1 = np.append(y1, y2)
 
     # Check if there is an input for mesh_predicted_interps
     if mesh_predicted_interps is not None:
@@ -222,8 +173,7 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
         plt.ylim([60, 100])
         plt.show()
 
-    # Perform Reduction and get points for Training Images and Predicted Points
-    x1, y1, title1 = reduction_function(train_data_latent_points, latent_dimensionality)
+
 
     # Get labels for all the points in a single list
     combined_label = original_data_labels  # Contains the labels for all the points
@@ -252,58 +202,63 @@ def plot_interpolation_smoothness(original_data_latent_points, original_data_lab
             if plot_points is True:  # Plots the predicted points
                 ax.plot(x1[cond], y1[cond], marker='o', c=marker_color, markersize=markersize, linestyle='none',
                         label=label, zorder=5)
+            if plot_lines:
+                ax.plot(x1[cond], y1[cond], 'ro-', zorder=10)
 
-    # Pull Coordinates from Reduction for plotting the Mesh
-    interpolation_cords_x = x1[-np.shape(interpolated_latent_points)[0]:]  # coordinates of the interpolation points x(ordered)
-    interpolation_cords_x = np.reshape(interpolation_cords_x, (np.shape(mesh_predicted_interps)[0], np.shape(mesh_predicted_interps)[1]))
+    # Perform Mesh Operations
+    line_segment_title = ""
+    if mesh_predicted_interps is not None:
+        # Pull Coordinates from Reduction for plotting the Mesh
+        interpolation_cords_x = x1[-np.shape(interpolated_latent_points)[0]:]  # coordinates of the interpolation points x(ordered)
+        interpolation_cords_x = np.reshape(interpolation_cords_x, (np.shape(mesh_predicted_interps)[0], np.shape(mesh_predicted_interps)[1]))
 
-    interpolation_cords_y = y1[-np.shape(interpolated_latent_points)[0]:]  # coordinates of the interpolation points y(ordered)
-    interpolation_cords_y = np.reshape(interpolation_cords_y, (np.shape(mesh_predicted_interps)[0], np.shape(mesh_predicted_interps)[1]))
+        interpolation_cords_y = y1[-np.shape(interpolated_latent_points)[0]:]  # coordinates of the interpolation points y(ordered)
+        interpolation_cords_y = np.reshape(interpolation_cords_y, (np.shape(mesh_predicted_interps)[0], np.shape(mesh_predicted_interps)[1]))
 
-    # Create the Segments between the rows and columns in the Mesh
-    row_lines = []
-    for row in range(np.shape(interpolation_cords_x)[0]):
-        row_lines.append([(interpolation_cords_x[row, 0], interpolation_cords_y[row, 0]),
-                          (interpolation_cords_x[row, -1], interpolation_cords_y[row,-1])])
-    col_lines = []
-    for col in range(np.shape(interpolation_cords_x)[1]):
-        col_lines.append([(interpolation_cords_x[0, col], interpolation_cords_y[0, col]),
-                          (interpolation_cords_x[-1, col], interpolation_cords_y[-1, col])])
+        # Create the Segments between the rows and columns in the Mesh
+        row_lines = []
+        for row in range(np.shape(interpolation_cords_x)[0]):
+            row_lines.append([(interpolation_cords_x[row, 0], interpolation_cords_y[row, 0]),
+                              (interpolation_cords_x[row, -1], interpolation_cords_y[row,-1])])
+        col_lines = []
+        for col in range(np.shape(interpolation_cords_x)[1]):
+            col_lines.append([(interpolation_cords_x[0, col], interpolation_cords_y[0, col]),
+                              (interpolation_cords_x[-1, col], interpolation_cords_y[-1, col])])
 
-    # Plot the Line Segments in the rows and columns in the mesh
-    smoothness_line_row = np.array(smoothness_line_row) / 100
-    smoothness_line_col = np.array(smoothness_line_col) / 100
+        # Plot the Line Segments in the rows and columns in the mesh
+        smoothness_line_row = np.array(smoothness_line_row) / 100  # Calculates the smoothness of each row
+        smoothness_line_col = np.array(smoothness_line_col) / 100  # Calculates the smoothness of each column
 
-    if plot_row_segments == plot_col_segments == True:  # Plots rows and columns
-        plot_line_segments_rows_columns(row_lines, col_lines, smoothness_line_row, smoothness_line_col, ax, "Row", "Column")
-        line_segment_title = ": Smoothness of Rows and Columns Represented by Line Segments"
+        if plot_row_segments == plot_col_segments == True:  # Plots rows and columns
+            plot_line_segments_rows_columns(row_lines, col_lines, smoothness_line_row, smoothness_line_col, ax, "Row", "Column")
+            line_segment_title = ": Smoothness of Rows and Columns Represented by Line Segments"
 
-    elif plot_col_segments is True:  # Plots the columns only
-        plot_line_segments(col_lines, smoothness_line_col, ax, color_bar_min=color_bar_min,
-                           color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
-        line_segment_title = ": Smoothness Columns Represented by Line Segments"
+        elif plot_col_segments is True:  # Plots the columns only
+            plot_line_segments(col_lines, smoothness_line_col, ax, color_bar_min=color_bar_min,
+                               color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
+            line_segment_title = ": Smoothness Columns Represented by Line Segments"
 
-    elif plot_row_segments is True:  # Plots the rows only
-        plot_line_segments(row_lines, smoothness_line_row, ax, color_bar_min=color_bar_min,
-                           color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
-        line_segment_title = ": Smoothness of Rows Represented by Line Segments"
+        elif plot_row_segments is True:  # Plots the rows only
+            plot_line_segments(row_lines, smoothness_line_row, ax, color_bar_min=color_bar_min,
+                               color_bar_max=color_bar_max)  # function that plots the line segments and color codes them
+            line_segment_title = ": Smoothness of Rows Represented by Line Segments"
 
-    else:  # Recommends the user to use a different function
-        print("Use plot_reduction_interpolation if you do not want line segments on your figure")
-        line_segment_title = ""
+        # else:  # Recommends the user to use a different function
+        #     print("Use plot_reduction_interpolation if you do not want line segments on your figure")
+        #     line_segment_title = ""
 
-    # Plotting the Images in the 4 Corners of the Mesh
-    images_corners = []
-    x_corners = []
-    y_corners = []
-    for point in [(0, 0), (0, -1), (-1, 0), (-1, -1)]:  # Loop through the corner points in the mesh
-        images_corners.append(np.pad(mesh_predicted_interps[point], 1, mode='constant')) # Puts a black box surrounding each array
-        x_corners.append(interpolation_cords_x[point])
-        y_corners.append(interpolation_cords_y[point])
-    imscatter(x_corners, y_corners, imageData=images_corners, ax=ax, zoom=1.5, image_size=image_size + 2)
+        # Plotting the Images in the 4 Corners of the Mesh
+        images_corners = []
+        x_corners = []
+        y_corners = []
+        for point in [(0, 0), (0, -1), (-1, 0), (-1, -1)]:  # Loop through the corner points in the mesh
+            images_corners.append(np.pad(mesh_predicted_interps[point], 1, mode='constant')) # Puts a black box surrounding each array
+            x_corners.append(interpolation_cords_x[point])
+            y_corners.append(interpolation_cords_y[point])
+        imscatter(x_corners, y_corners, imageData=images_corners, ax=ax, zoom=1.5, image_size=image_size + 2)
 
-    # Plots the predicted points, line segments, training images, and images from the 4 corners of the mesh on a
-    # single figure
+        # Plots the predicted points, line segments, training images, and images from the 4 corners of the mesh on a
+        # single figure
     plt.legend(numpoints=1, fontsize=20)
     plt.title(title + line_segment_title)
     plt.show()

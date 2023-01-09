@@ -14,8 +14,8 @@ from sklearn.decomposition import PCA
 from smoothness_testing import euclidean_plot, RMSE_plot, smoothness
 # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
-from Dimensionality_Reduction_Latent_Space import PaCMAP_reduction, PCA_reduction, PCA_TSNE_reduction, TSNE_reduction, \
-    plot_dimensionality_reduction, Latent_Image_Proj, plot_reduction_interpolation, plot_interpolation_smoothness
+from Dimensionality_Reduction_Latent_Space import PaCMAP_reduction, PCA_reduction, TSNE_reduction, \
+    plot_dimensionality_reduction, Latent_Image_Proj, plot_interpolation_smoothness
 warnings.filterwarnings('ignore')
 disable_eager_execution()
 ########################################################################################################################
@@ -60,11 +60,11 @@ shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "b
           "back_slash_plus_box", "forward_slash_plus_box", "hot_dog_box", "hamburger_box", "x_hamburger_box",
           "x_hot_dog_box", "x_plus_box")
 
-box_shape_1 =  "back_slash_plus_box"  # End points for the 2 point interpolation
-box_shape_2 =  "hamburger_box"#
+box_shape_1 = "diagonal_box_split"  # End points for the 2 point interpolation
+box_shape_2 = "forward_slash_box"
 
-box_shape_3 =  "forward_slash_box" #"basic_box" # Additional end points to use for grid interpolation
-box_shape_4 =  "diagonal_box_split"  #   #"back_slash_box" # "forward_slash_plus_box" "horizontal_vertical_box_split" "forward_slash_box"
+box_shape_3 = "hamburger_box"  # Additional end points to use for grid interpolation
+box_shape_4 = "hot_dog_box"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
 indices_1 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_1]
@@ -137,7 +137,6 @@ plt.title("Second Interpolation Point:\n" + str(box_shape_test[number_2]) + "\nP
             box_density_test[number_2]) + "\nAdditional Pixels: " + str(additional_pixels_test[number_2]))  # + "\nPredicted Latent Point 2: " + str(latent_point_2)
 plt.show()
 
-
 ########################################################################################################################
 # Smoothness Evaluation based on Standard Deviations from the mean
 run_std = input("Would you like to run standard deviation evaluations? (yes/no)")
@@ -198,15 +197,10 @@ if run_std == "yes":
 
     Y = smoothness_array
 
-    # reg = LinearRegression().fit(OLS_array, Y)
-    # reg.score(OLS_array, Y)
-
     distance_std = np.linalg.norm(train_std)
     distance_original_interp = np.linalg.norm(np.subtract(latent_point_1, latent_point_2))
     print("Distance between latent points")
     print(distance_original_interp)
-
-        # reg.predict((original_num_std, num_interp, original_num_std*num_interp))
 
     import statsmodels.api as sm
 
@@ -240,12 +234,6 @@ ax.voxels(voxel_interpolation, edgecolor="k", facecolors=cmap(voxel_interpolatio
 # Display the plot
 plt.show()
 
-
-########################################################################################################################
-# Create a PCA Plot of the Latent Space with Images Superimposed
-Latent_Image_Proj(box_matrix_train, image_size, train_latent_points, latent_dimensionality, reduction_function=PCA_reduction)
-
-Latent_Image_Proj(box_matrix_train, image_size,train_latent_points, latent_dimensionality, reduction_function=PaCMAP_reduction)
 ########################################################################################################################
 # Determining Smoothness using Gradient
 smoothness(predicted_interps, plot=True)
@@ -314,18 +302,6 @@ for i in range(num_interp):
 plt.figure(figsize=(15, 15))
 plt.imshow(figure, cmap='gray')
 plt.show()
-
-
-# for row in (0,3,5,9):
-#     plt.imshow(np.concatenate(mesh_predicted_interps[row,:], axis=1), cmap='gray')
-#     plt.show()
-#
-#
-# for col in (0,3,5,9):
-#     plt.imshow(np.concatenate(mesh_predicted_interps[:,col], axis=0), cmap='gray')
-#     plt.show()
-
-
 ########################################################################################################################
 # Preparing the Data to be Plotted
 trainX = box_matrix_train
@@ -354,78 +330,76 @@ plt.title("Plot of Predicted Latent Points without Dimensionality Reduction")
 sns.scatterplot(x='x', y='y', hue='z', data=df)
 plt.show()
 ########################################################################################################################
-# Latent Feature Cluster for Training Data using T-SNE
-flattened = np.reshape(trainX, (np.shape(trainX)[0], np.shape(trainX)[1]**2))
-perplexity = 30
-learning_rate = 20
-
-# pca = PCA(n_components=latent_dimensionality)  # PCA can be used to assist with reducing dimensionality in cases where the latent space is large
-# flattened = pca.fit_transform(flattened)
-model = TSNE(n_components=2, random_state=0,  perplexity=perplexity, learning_rate=learning_rate)  # Perplexity(5-50) | learning_rate(10-1000)
-# configuring the parameters
-# the number of components = dimension of the embedded space
-# default perplexity = 30 " Perplexity balances the attention t-SNE gives to local and global aspects of the data.
-# It is roughly a guess of the number of close neighbors each point has. ..a denser dataset ... requires higher perplexity value"
-# default learning rate = 200 "If the learning rate is too high, the data may look like a ‘ball’ with any point
-# approximately equidistant from its nearest neighbours. If the learning rate is too low,
-# most points may look compressed in a dense cloud with few outliers."
-tsne_data = model.fit_transform(flattened) # When there are more data points, trainX should be the first couple hundred points so TSNE doesn't take too long
-
-plt.figure(figsize=(8, 6))
-plt.title("T-SNE of Original Training Data\nPerplexity: " + str(perplexity) + "\nLearning Rate: " + str(learning_rate) + "\nLatent Space Dimensionality: " + str(latent_dimensionality))
-sns.scatterplot(x=tsne_data[:, 0], y=tsne_data[:, 1], hue='z', data=df)
-plt.show()
-
+# Establish the different desired reduction methods
+pca = PCA_reduction(train_latent_points, latent_dimensionality)  # x, y, title, embedding
+PaCMAP = PaCMAP_reduction(train_latent_points, latent_dimensionality, random_state=1)  # x, y, title, embedding
+TSNE = TSNE_reduction(train_latent_points, latent_dimensionality)  # x, y, title, embedding
 
 ########################################################################################################################
-# Latent Feature Cluster for Training Data using T-SNE and Predicted Latent Points
-x, y, title = TSNE_reduction(train_latent_points, latent_dimensionality)
-plot_dimensionality_reduction(x, y, box_shape_train, title)
-plt.show()
+# Create a PCA Plot of the Latent Space with Images Superimposed
+Latent_Image_Proj(box_matrix_train, image_size, train_latent_points, latent_dimensionality, embedding=pca)
+# Create a PaCMAP Plot of the Latent Space with Images Superimposed
+Latent_Image_Proj(box_matrix_train, image_size,train_latent_points, latent_dimensionality, embedding=PaCMAP)
+
 ########################################################################################################################
-# Latent Feature Cluster for Training Data using PCA reduced T-SNE and Predicted Latent Points
-x, y, title = PCA_TSNE_reduction(train_latent_points, latent_dimensionality)
+# Point Based Plots Demonstrating different Embeddings of the Training Data
+# Latent Feature Cluster of Training Data using T-SNE
+plot_dimensionality_reduction(TSNE[0], TSNE[1], box_shape_train, TSNE[2])
+plt.show()
+
+# Latent Feature Cluster for Training Data using PCA reduced T-SNE
+title = "PCA Reduced and T-SNE Plotted with Predicted Latent Points"
+TSNE_embedding = TSNE[3]
+PCA_TSNE = TSNE_embedding.fit_transform(np.hstack((pca[0].reshape(-1, 1), pca[1].reshape(-1, 1))))
+x = PCA_TSNE[:, 0]
+y = PCA_TSNE[:, 1]
 plot_dimensionality_reduction(x, y, box_shape_train, title)
 plt.show()
+
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Latent Points
-plot_reduction_interpolation(train_latent_points, box_shape_train, latent_matrix, latent_dimensionality,
-                             image_size=image_size, image_arrays=box_matrix_train,
-                             title="PCA Reduced Latent Space with Visualization of Interpolation")
 
+plot_interpolation_smoothness(box_shape_train, latent_matrix, embedding=pca, image_size=image_size,
+                              number_of_interpolations=num_interp, image_arrays=box_matrix_train, markersize=8,
+                              marker_color='red', title="PCA Reduction: Linear Interpolation Plot in Latent Space",
+                              mesh_predicted_interps=None, plot_points=True, plot_lines=True)
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PCA and Predicted Grid Latent Points
 
 mesh_flat = np.reshape(mesh, (num_interp**2, latent_dimensionality))
-# train_data_latent_grid = np.append(train_latent_points, mesh_flat, axis=0)
 
-plot_reduction_interpolation(train_latent_points, box_shape_train, mesh_flat, latent_dimensionality,
-                             image_size=image_size, image_arrays=box_matrix_train, markersize=8,
-                             marker_color='red',
-                             title="PCA Reduction of Mesh Interpolation", plot_lines=False)
+# Plot the Points in the Mesh over the Latent Space
+plot_interpolation_smoothness(box_shape_train, mesh_flat, embedding=pca,
+                              image_size=image_size, number_of_interpolations=num_interp, image_arrays=box_matrix_train,
+                              markersize=8, marker_color='red', title="PCA Reduction of Mesh Interpolation",
+                              mesh_predicted_interps=None, plot_points=True,
+                              color_bar_min=85, color_bar_max=100)
 
-plot_reduction_interpolation(train_latent_points, box_shape_train, mesh_flat, latent_dimensionality,
-                             image_size=image_size, image_arrays=box_matrix_train, markersize=8,
-                             marker_color='red',
-                             title="PCA Reduction of Mesh Interpolation", plot_lines=False, plot_points=False)
+# Plots the Latent Space
+plot_interpolation_smoothness(box_shape_train, mesh_flat, embedding=pca,
+                              image_size=image_size, number_of_interpolations=num_interp, image_arrays=box_matrix_train,
+                              markersize=8, marker_color='red', title="PCA Reduction of Mesh Interpolation",
+                              mesh_predicted_interps=None, plot_points=False,
+                              color_bar_min=85, color_bar_max=100)
 
-plot_interpolation_smoothness(train_latent_points, box_shape_train, mesh_flat,  latent_dimensionality,
-                              image_size=image_size, number_of_interpolations=num_interp,image_arrays=box_matrix_train,
+# Plot the Smoothness of the Columns in the Mesh
+plot_interpolation_smoothness(box_shape_train, mesh_flat, embedding=pca,
+                              image_size=image_size, number_of_interpolations=num_interp, image_arrays=box_matrix_train,
                               markersize=6, marker_color='black', title="PCA Reduction of Mesh Interpolation",
-                              mesh_predicted_interps=mesh_predicted_interps, plot_lines=False, plot_points=True,
-                              color_bar_min=85, color_bar_max=100, plot_row_segments=False)
+                              mesh_predicted_interps=mesh_predicted_interps, plot_points=True,
+                              color_bar_min=85, color_bar_max=100, plot_col_segments=True)
 
-plot_interpolation_smoothness(train_latent_points, box_shape_train, mesh_flat,  latent_dimensionality,
-                              image_size=image_size, number_of_interpolations=num_interp,image_arrays=box_matrix_train,
+# Plots the Smoothness of the Rows in the Mesh
+plot_interpolation_smoothness(box_shape_train, mesh_flat, embedding=pca,
+                              image_size=image_size, number_of_interpolations=num_interp, image_arrays=box_matrix_train,
                               markersize=6, marker_color='black', title="PCA Reduction of Mesh Interpolation",
-                              mesh_predicted_interps=mesh_predicted_interps, plot_lines=False, plot_points=True,
-                              color_bar_min=85, color_bar_max=100, plot_col_segments=False)
+                              mesh_predicted_interps=mesh_predicted_interps, plot_points=True,
+                              color_bar_min=85, color_bar_max=100, plot_row_segments=True)
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points
 x, y, title = PaCMAP_reduction(train_latent_points, latent_dimensionality)
 plot_dimensionality_reduction(x, y, box_shape_train, title)
-
 
 plot_dimensionality_reduction(x, y, avg_density, "PaCMAP Reduction: Labeled with Respect to Average Density of Pixels")
 
