@@ -60,11 +60,11 @@ shapes = ("basic_box", "diagonal_box_split", "horizontal_vertical_box_split", "b
           "back_slash_plus_box", "forward_slash_plus_box", "hot_dog_box", "hamburger_box", "x_hamburger_box",
           "x_hot_dog_box", "x_plus_box")
 
-box_shape_1 = "diagonal_box_split"  # End points for the 2 point interpolation
-box_shape_2 = "forward_slash_box"
+box_shape_1 = "hot_dog_box"  # End points for the 2 point interpolation
+box_shape_2 = "hamburger_box"
 
-box_shape_3 = "hamburger_box"  # Additional end points to use for grid interpolation
-box_shape_4 = "hot_dog_box"
+box_shape_3 = "forward_slash_box"  # Additional end points to use for grid interpolation
+box_shape_4 = "diagonal_box_split"
 
 # Creates a sequence of input values for the desired label of number_1 and number_2
 indices_1 = [i for i in range(len(testX)) if box_shape_test[i] == box_shape_1]
@@ -398,7 +398,7 @@ plot_interpolation_smoothness(box_shape_train, mesh_flat, embedding=pca,
 
 ########################################################################################################################
 # Latent Feature Cluster for Training Data using PaCMAP and Predicted Latent Points
-x, y, title = PaCMAP_reduction(train_latent_points, latent_dimensionality)
+x, y, title, embedding = PaCMAP_reduction(train_latent_points, latent_dimensionality)
 plot_dimensionality_reduction(x, y, box_shape_train, title)
 
 plot_dimensionality_reduction(x, y, avg_density, "PaCMAP Reduction: Labeled with Respect to Average Density of Pixels")
